@@ -123,7 +123,8 @@ impl Channel {
     /// Set the number of *bytes* to transfer per minor loop
     ///
     /// Describes how many bytes we should transfer for each DMA service request.
-    pub fn set_minor_loop_bytes(&mut self, nbytes: u32) {
+    pub fn set_minor_loop_bytes(&self, nbytes: u32) {
+        // Immutable write OK. 32-bit store on NBYTES.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, NBYTES, nbytes);
     }
@@ -131,7 +132,8 @@ impl Channel {
     /// Se the number of elements to move in each minor loop
     ///
     /// Describes how many elements we should transfer for each DMA service request.
-    pub fn set_minor_loop_elements<E: Element>(&mut self, len: usize) {
+    pub fn set_minor_loop_elements<E: Element>(&self, len: usize) {
+        // Immutable write OK. See set_minor_loop_bytes.
         self.set_minor_loop_bytes((mem::size_of::<E>() * len) as u32);
     }
 
@@ -157,6 +159,7 @@ impl Channel {
     /// panics if `triggering` is set for the [`Enable`](crate::channel::ChannelConfiguration)
     /// variant, but the channel does not support triggering.
     pub fn set_channel_configuration(&self, configuration: ChannelConfiguration) {
+        // Immutable write OK. 32-bit store on configuration register.
         let chcfg = &self.multiplexer.chcfg[self.index];
         match configuration {
             ChannelConfiguration::Off => chcfg.write(0),
@@ -192,12 +195,14 @@ impl Channel {
     /// Caller must ensure that the source and destination transfer descriptors are valid.
     /// See [`set_source_transfer`](#method.set_source_transfer) and
     /// [`set_destination_transfer`](#method.set_destination_transfer) for more information.
-    pub unsafe fn enable(&mut self) {
+    pub unsafe fn enable(&self) {
+        // Immutable write OK. No other methods directly modify ERQ.
         self.registers.SERQ.write(self.index as u8);
     }
 
     /// Disable the DMA channel, preventing any DMA transfers
-    pub fn disable(&mut self) {
+    pub fn disable(&self) {
+        // Immutable write OK. No other methods directly modify ERQ.
         self.registers.CERQ.write(self.index as u8);
     }
 
@@ -207,7 +212,8 @@ impl Channel {
     }
 
     /// Clear the interrupt flag from this DMA channel
-    pub fn clear_interrupt(&mut self) {
+    pub fn clear_interrupt(&self) {
+        // Immutable write OK. No other methods modify INT.
         self.registers.CINT.write(self.index as u8);
     }
 
@@ -235,7 +241,10 @@ impl Channel {
     }
 
     /// Clears completion indication
-    pub fn clear_complete(&mut self) {
+    pub fn clear_complete(&self) {
+        // Immutable write OK. CDNE affects a bit in TCD. But, other writes to
+        // TCD require &mut reference. Existence of &mut reference blocks
+        // clear_complete calls.
         self.registers.CDNE.write(self.index as u8);
     }
 
@@ -245,7 +254,9 @@ impl Channel {
     }
 
     /// Clears the error flag
-    pub fn clear_error(&mut self) {
+    pub fn clear_error(&self) {
+        // Immutable write OK. CERR affects a bit in ERR, which is
+        // not written to elsewhere.
         self.registers.CERR.write(self.index as u8);
     }
 
@@ -283,7 +294,10 @@ impl Channel {
     /// Caller must ensure that the source and destination transfer descriptors are valid.
     /// See [`set_source_transfer`](#method.set_source_transfer) and
     /// [`set_destination_transfer`](#method.set_destination_transfer) for more information.
-    pub unsafe fn start(&mut self) {
+    pub unsafe fn start(&self) {
+        // Immutable write OK. SSRT affects a bit in TCD. But, other writes to
+        // TCD require &mut reference. Existence of &mut reference blocks
+        // start calls.
         self.registers.SSRT.write(self.index as u8);
     }
 }
