@@ -40,7 +40,7 @@
 //!     channel.set_destination_transfer(&rx);
 //! }
 //!
-//! channel.set_minor_loop_elements::<u32>(1);
+//! channel.set_minor_loop_bytes(core::mem::size_of::<u32>() as u32);
 //! channel.set_transfer_iterations(source.len() as u16);
 //!
 //! unsafe {

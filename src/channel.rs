@@ -1,7 +1,5 @@
 //! DMA channel
 
-use core::mem;
-
 use crate::{
     element::Element,
     ral::{self, dma, dmamux, tcd::BandwidthControl, Static, DMA, MULTIPLEXER},
@@ -159,18 +157,11 @@ impl Channel {
     /// Set the number of *bytes* to transfer per minor loop
     ///
     /// Describes how many bytes we should transfer for each DMA service request.
+    /// Note that `nbytes` of `0` is interpreted as a 4GB transfer.
     pub fn set_minor_loop_bytes(&self, nbytes: u32) {
         // Immutable write OK. 32-bit store on NBYTES.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, NBYTES, nbytes);
-    }
-
-    /// Se the number of elements to move in each minor loop
-    ///
-    /// Describes how many elements we should transfer for each DMA service request.
-    pub fn set_minor_loop_elements<E: Element>(&self, len: usize) {
-        // Immutable write OK. See set_minor_loop_bytes.
-        self.set_minor_loop_bytes((mem::size_of::<E>() * len) as u32);
     }
 
     /// Tells the DMA channel how many transfer iterations to perform
