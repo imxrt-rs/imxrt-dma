@@ -92,28 +92,13 @@ impl Channel {
         ral::write_reg!(crate::ral::tcd, tcd, SADDR, saddr as u32);
     }
 
-    /// Set the source offset in *bytes*
+    /// Set the source offset *in bytes*
     ///
     ///`offset` could be negative, which would decrement the address.
-    pub fn set_source_offset_bytes(&self, offset: i16) {
+    pub fn set_source_offset(&self, offset: i16) {
         // Immutable write OK. 16-bit aligned store on SOFF.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, SOFF, offset);
-    }
-
-    /// Set the source offset in *element counts*
-    ///
-    ///`counts` could be negative, which would decrement the address.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the number of elements cannot be expressed as a number of bytes.
-    pub fn set_source_offset_elements<E: Element>(&self, counts: i16) {
-        self.set_source_offset_bytes(
-            counts
-                .checked_mul(core::mem::size_of::<E>() as i16)
-                .unwrap(),
-        );
     }
 
     /// Set the destination address for a DMA transfer
@@ -126,28 +111,13 @@ impl Channel {
         ral::write_reg!(crate::ral::tcd, tcd, DADDR, daddr as u32);
     }
 
-    /// Set the destination offset in *bytes*
+    /// Set the destination offset *in bytes*
     ///
     /// `offset` could be negative, which would decrement the address.
-    pub fn set_destination_offset_bytes(&self, offset: i16) {
+    pub fn set_destination_offset(&self, offset: i16) {
         // Immutable write OK. 16-bit aligned store on DOFF.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, DOFF, offset);
-    }
-
-    /// Set the destination offset in *element counts*
-    ///
-    /// `counts` could be negative, which would decrement the address.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the number of elements cannot be expressed as a number of bytes.
-    pub fn set_destination_offset_elements<E: Element>(&self, counts: i16) {
-        self.set_destination_offset_bytes(
-            counts
-                .checked_mul(core::mem::size_of::<E>() as i16)
-                .unwrap(),
-        )
     }
 
     /// Set the transfer attributes for the source
@@ -160,6 +130,18 @@ impl Channel {
             MOD: modulo,
             SIZE: E::DATA_TRANSFER_ID
         );
+    }
+
+    /// Set the source last address adjustment *in bytes*
+    pub fn set_source_last_address_adjustment(&self, adjustment: i32) {
+        let tcd = self.tcd();
+        ral::write_reg!(crate::ral::tcd, tcd, SLAST, adjustment);
+    }
+
+    /// Set the destination last addrss adjustment *in bytes*
+    pub fn set_destination_last_address_adjustment(&self, adjustment: i32) {
+        let tcd = self.tcd();
+        ral::write_reg!(crate::ral::tcd, tcd, DLAST_SGA, adjustment);
     }
 
     /// Set the transfer attributes for the destination
@@ -246,9 +228,8 @@ impl Channel {
     /// # Safety
     ///
     /// This could initiate a DMA transaction that uses an invalid source or destination.
-    /// Caller must ensure that the source and destination transfer descriptors are valid.
-    /// See [`set_source_transfer`](#method.set_source_transfer) and
-    /// [`set_destination_transfer`](#method.set_destination_transfer) for more information.
+    /// Caller must ensure that the source and destination set in the channel are valid for
+    /// the lifetime of the transfer.
     pub unsafe fn enable(&self) {
         // Immutable write OK. No other methods directly modify ERQ.
         self.registers.SERQ.write(self.index as u8);
@@ -345,137 +326,13 @@ impl Channel {
     /// # Safety
     ///
     /// This could initiate a DMA transaction that uses an invalid source or destination.
-    /// Caller must ensure that the source and destination transfer descriptors are valid.
-    /// See [`set_source_transfer`](#method.set_source_transfer) and
-    /// [`set_destination_transfer`](#method.set_destination_transfer) for more information.
+    /// Caller must ensure that the source and destination set in the channel are valid for
+    /// the lifetime of the transfer.
     pub unsafe fn start(&self) {
         // Immutable write OK. SSRT affects a bit in TCD. But, other writes to
         // TCD require &mut reference. Existence of &mut reference blocks
         // start calls.
         self.registers.SSRT.write(self.index as u8);
-    }
-}
-
-/// Describes a DMA transfer
-///
-/// `Transfer` describes a source or a destination of a DMA transfer. A source or destination
-/// could be
-///
-/// - a hardware register
-/// - an element buffer that's treated as linear memory
-/// - an element buffer that's treated as a circular buffer
-///
-/// A transfer that uses a circular buffer requires that the buffer size is a power of two.
-///
-/// It's always safe to create a `Transfer`, because the struct is inert. But, it's generally
-/// unsafe to use `Transfer` in other methods. You must make sure that the memory described by
-/// `Transfer` is valid for the lifetime of the DMA transaction.
-#[derive(Debug)]
-pub struct Transfer<E: Element> {
-    /// The starting address for the DMA transfer
-    ///
-    /// If this describes a source, `address` will be the first
-    /// address read. If this describes a destination, `address`
-    /// will be the first address written.
-    address: *const E,
-
-    /// Offsets to perform for each read / write of a memory address.
-    ///
-    /// When defining a transfer for a peripheral source or destination,
-    /// `offset` should be zero. Otherwise, `offset` should represent the
-    /// size of the data element, `E`.
-    ///
-    /// Negative (backwards) adjustments are permitted, if you'd like to read
-    /// a buffer backwards or something.
-    offset: i16,
-
-    /* size: u16, // Not needed; captured in E: Element type */
-    /// Defines the strategy for reading / writing linear or circular buffers
-    ///
-    /// `modulo` should be zero if this definition defines a transfer from linear
-    /// memory or a peripheral. `modulo` will be non-zero when defining a transfer
-    /// from a circular buffer. The non-zero value is the number of high bits to freeze
-    /// when performing address offsets (see `offset`). Given that we're only supporting
-    /// power-of-two buffer sizes, `modulo` will be `31 - clz(cap * sizeof(E))`, where `cap` is the
-    /// total size of the circular buffer, `clz` is "count leading zeros," and `sizeof(E)` is
-    /// the size of the element, in bytes.
-    modulo: u16,
-
-    /// Perform any last-address adjustments when we complete the transfer
-    ///
-    /// Once we complete moving data from a linear buffer, we should set our pointer back to the
-    /// initial address. For this case, `last_address_adjustment` should be a negative number that
-    /// describes how may *bytes* to move backwards from our current address to reach our starting
-    /// address. Alternatively, it could describe how to move to a completely new address, like
-    /// a nearby buffer that we're using for a double-buffer. Or, set it to zero, which means "keep
-    /// your current position." "Keep your current position" is important when working with a
-    /// peripheral address!
-    last_address_adjustment: i32,
-}
-
-impl<E: Element> Transfer<E> {
-    /// Defines a transfer that reads from a hardware register at `address`
-    ///
-    /// # Safety
-    ///
-    /// Caller must ensure that `address` is a memory location that can accept
-    /// reads or writes from the DMA controller.
-    pub unsafe fn hardware(address: *const E) -> Self {
-        Transfer {
-            address,
-            // Don't move the address pointer
-            offset: 0,
-            // We're not a circular buffer
-            modulo: 0,
-            // Don't move the address pointer
-            last_address_adjustment: 0,
-        }
-    }
-
-    /// Defines a transfer that can read from or write to `buffer`
-    ///
-    /// `ptr` points to the starting element of the buffer. `len` indicates how many elements
-    /// you will transfer
-    ///
-    /// # Safety
-    ///
-    /// Caller must ensure that the memory starting at `ptr` is valid for `len` elements.
-    pub unsafe fn buffer_linear(ptr: *const E, len: usize) -> Self {
-        // TODO drop `len`, and leave the last address adjustment as zero.
-        // The implementation will always specifying the starting address,
-        // so last address adjustment doesn't matter.
-        Transfer {
-            address: ptr,
-            offset: core::mem::size_of::<E>() as i16,
-            modulo: 0,
-            last_address_adjustment: ((len * mem::size_of::<E>()) as i32).wrapping_neg(),
-        }
-    }
-
-    /// Defines a transfer that can read from or write to the circular buffer
-    ///
-    /// `start` points to the first element that will be used in the transfer. `capacity`
-    /// is the total size of the allocated memory region for the transfer; it is **not**
-    /// the number of elements to transfer. `capacity` will be converted into the DMA
-    /// transfer modulus value.
-    ///
-    /// # Safety
-    ///
-    /// `start` is a pointer somewhere in a linear buffer. The *alignment* of the that
-    /// complete buffer must be a multiple of the buffer's size, in bytes. You must take
-    /// care of buffer alignment.
-    pub unsafe fn buffer_circular(start: *const E, capacity: usize) -> Option<Self> {
-        if !capacity.is_power_of_two() {
-            return None;
-        }
-
-        let modulo = 31 - (capacity * mem::size_of::<E>()).leading_zeros() as u16;
-        Some(Transfer {
-            address: start,
-            offset: core::mem::size_of::<E>() as i16,
-            modulo,
-            last_address_adjustment: 0,
-        })
     }
 }
 

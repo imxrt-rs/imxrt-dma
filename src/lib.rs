@@ -77,13 +77,12 @@ mod element;
 mod peripheral;
 mod ral;
 
-pub use channel::{Channel, ChannelConfiguration, Transfer};
+pub use channel::{Channel, ChannelConfiguration};
 pub use element::Element;
 pub use peripheral::{Destination, Source};
 pub use ral::tcd::BandwidthControl;
 
 use core::fmt::{self, Debug, Display};
-use core::sync::atomic;
 
 /// A wrapper around a DMA error status value
 ///
@@ -135,100 +134,106 @@ impl Display for ErrorStatus {
     }
 }
 
-/// Schedule a DMA transfer from memory (`source`) to a peripheral (`destination`)
-///
-/// Assumes that there is not already an active transfer. Caller is responsible for
-/// setting up any other channel state, including
-///
-/// - disable on completion
-/// - interrupt on half / complete
-///
-/// `peripheral_transfer` will not block. When the transfer completes, caller will
-/// be responsible for disabling the channel and the peripheral.
-///
-/// # Safety
-///
-/// An `Ok(())` return indicates that the transfer was scheduled. You must ensure that
-/// `source` is valid for the lifetime of the transfer. An error indicates that there
-/// was an error scheduling the transfer, and that it is safe to invalidate `source`.
-pub unsafe fn peripheral_transfer<P, E>(
-    channel: &mut Channel,
-    source: &[E],
-    destination: &P,
-) -> Result<(), ErrorStatus>
-where
-    P: Destination<E>,
-    E: Element,
-{
-    let tx = Transfer::buffer_linear(source.as_ptr(), source.len());
-    let rx = Transfer::hardware(destination.destination());
-
-    destination.enable_destination();
-    channel.set_channel_configuration(ChannelConfiguration::enable(
-        destination.destination_signal(),
-    ));
-    channel.set_source_transfer(&tx);
-    channel.set_destination_transfer(&rx);
-    channel.set_minor_loop_elements::<E>(1);
-    channel.set_transfer_iterations(source.len() as u16);
-
-    atomic::compiler_fence(atomic::Ordering::Release);
-
-    channel.enable();
-    if channel.is_error() {
-        channel.disable();
-        let es = channel.error_status();
-        channel.clear_error();
-        Err(es)
-    } else {
-        Ok(())
-    }
+/// Set a hardware peripheral as the source for a DMA transfer
+pub fn set_source_hardware<E: Element>(chan: &mut Channel, hardware_source: *const E) {
+    chan.set_source_address(hardware_source);
+    chan.set_source_offset(0);
+    chan.set_source_attributes::<E>(0);
+    chan.set_source_last_address_adjustment(0);
 }
 
-/// Schedule to receive data from a peripheral (`source`) into memory (`destination`)
-///
-/// Assumes that there is not already an active transfer. Caller is responsible for
-/// setting up any other channel state, including
-///
-/// - disable on completion
-/// - interrupt on half / complete
-///
-/// `peripheral_receive` will not block. When the transfer completes, caller will be
-/// responsible for disabling the channel and the peripheral.
-///
-/// # Safety
-///
-/// An `Ok(())` return indicates that the transfer was scheduled. You must ensure that
-/// `destination` is valid for the lifetime of the transfer. An error indicates that there
-/// was an error scheduling the transfer, and that it is safe to invalidate `destination`.
-pub unsafe fn peripheral_receive<P, E>(
-    channel: &mut Channel,
-    source: &P,
-    destination: &mut [E],
-) -> Result<(), ErrorStatus>
-where
-    P: Source<E>,
-    E: Element,
-{
-    let tx = Transfer::hardware(source.source());
-    let rx = Transfer::buffer_linear(destination.as_ptr(), destination.len());
+/// Set a hardware peripheral as the destination for a DMA transfer
+pub fn set_destination_hardware<E: Element>(chan: &mut Channel, hardware_destination: *const E) {
+    chan.set_destination_address(hardware_destination);
+    chan.set_destination_offset(0);
+    chan.set_destination_attributes::<E>(0);
+    chan.set_destination_last_address_adjustment(0);
+}
 
-    source.enable_source();
-    channel.set_channel_configuration(ChannelConfiguration::enable(source.source_signal()));
-    channel.set_source_transfer(&tx);
-    channel.set_destination_transfer(&rx);
-    channel.set_minor_loop_elements::<E>(1);
-    channel.set_transfer_iterations(destination.len() as u16);
+/// Set a linear buffer as the source for a DMA transfer
+///
+/// When the transfer completes, the DMA channel will point at the
+/// start of the buffer.
+pub fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
+    chan.set_source_address(source.as_ptr());
+    chan.set_source_offset(core::mem::size_of::<E>() as i16);
+    chan.set_source_attributes::<E>(0);
+    chan.set_source_last_address_adjustment(
+        ((source.len() * core::mem::size_of::<E>()) as i32).wrapping_neg(),
+    );
+}
 
-    atomic::compiler_fence(atomic::Ordering::Release);
+/// Set a linear buffer as the destination for a DMA transfer
+///
+/// When the transfer completes, the DMA channel will point at the
+/// start of the buffer.
+pub fn set_destination_linear_buffer<E: Element>(chan: &mut Channel, destination: &[E]) {
+    chan.set_destination_address(destination.as_ptr());
+    chan.set_destination_offset(core::mem::size_of::<E>() as i16);
+    chan.set_destination_attributes::<E>(0);
+    chan.set_destination_last_address_adjustment(
+        ((destination.len() * core::mem::size_of::<E>()) as i32).wrapping_neg(),
+    );
+}
 
-    channel.enable();
-    if channel.is_error() {
-        channel.disable();
-        let es = channel.error_status();
-        channel.clear_error();
-        Err(es)
-    } else {
-        Ok(())
-    }
+/// Assert properties about the circular buffer
+fn circular_buffer_asserts<E>(buffer: &[E]) {
+    let len = buffer.len();
+    assert!(
+        len.is_power_of_two(),
+        "DMA circular buffer size is not power of two"
+    );
+    let start = buffer.as_ptr();
+    let size = len * core::mem::size_of::<E>();
+    assert!(
+        (start as usize) % size == 0,
+        "DMA circular buffer is not properly aligned"
+    );
+}
+
+/// Compute the circular buffer modulo value
+fn circular_buffer_modulo<E>(buffer: &[E]) -> u32 {
+    31 - (buffer.len() * core::mem::size_of::<E>()).leading_zeros()
+}
+
+/// Set a circular buffer as the source for a DMA transfer
+///
+/// When the transfer completes, the DMA channel remain at the
+/// next element in the circular buffer.
+///
+/// # Panics
+///
+/// Panics if
+///
+/// - the capacity is not a power of two
+/// - the alignment is not a multiple of the buffer's size in bytes
+pub fn set_source_circular_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
+    circular_buffer_asserts(source);
+    let modulo = circular_buffer_modulo(source);
+
+    chan.set_source_address(source.as_ptr());
+    chan.set_source_offset(core::mem::size_of::<E>() as i16);
+    chan.set_source_attributes::<E>(modulo as u8);
+    chan.set_source_last_address_adjustment(0);
+}
+
+/// Set a circular buffer as the destination for a DMA transfer
+///
+/// When the transfer completes, the DMA channel remain at the
+/// next element in the circular buffer.
+///
+/// # Panics
+///
+/// Panics if
+///
+/// - the capacity is not a power of two
+/// - the alignment is not a multiple of the buffer's size in bytes
+pub fn set_destination_circular_buffer<E: Element>(chan: &mut Channel, destination: &[E]) {
+    circular_buffer_asserts(destination);
+    let modulo = circular_buffer_modulo(destination);
+
+    chan.set_destination_address(destination.as_ptr());
+    chan.set_destination_offset(core::mem::size_of::<E>() as i16);
+    chan.set_destination_attributes::<E>(modulo as u8);
+    chan.set_destination_last_address_adjustment(0);
 }
