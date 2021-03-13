@@ -82,6 +82,74 @@ impl Channel {
         &self.registers.TCD[self.index]
     }
 
+    /// Set the source address for a DMA transfer
+    ///
+    /// `saddr` should be a memory location that can provide the DMA controller
+    /// with data.
+    pub fn set_source_address<E: Element>(&self, saddr: *const E) {
+        // Immutable write OK. 32-bit aligned store on SADDR.
+        let tcd = self.tcd();
+        ral::write_reg!(crate::ral::tcd, tcd, SADDR, saddr as u32);
+    }
+
+    /// Set the source offset in *bytes*
+    ///
+    ///`offset` could be negative, which would decrement the address.
+    pub fn set_source_offset_bytes(&self, offset: i16) {
+        // Immutable write OK. 16-bit aligned store on SOFF.
+        let tcd = self.tcd();
+        ral::write_reg!(crate::ral::tcd, tcd, SOFF, offset);
+    }
+
+    /// Set the source offset in *element counts*
+    ///
+    ///`counts` could be negative, which would decrement the address.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number of elements cannot be expressed as a number of bytes.
+    pub fn set_source_offset_elements<E: Element>(&self, counts: i16) {
+        self.set_source_offset_bytes(
+            counts
+                .checked_mul(core::mem::size_of::<E>() as i16)
+                .unwrap(),
+        );
+    }
+
+    /// Set the destination address for a DMA transfer
+    ///
+    /// `daddr` should be a memory location that can store data from the
+    /// DMA controller.
+    pub fn set_destination_address<E: Element>(&self, daddr: *const E) {
+        // Immutable write OK. 32-bit aligned store on DADDR.
+        let tcd = self.tcd();
+        ral::write_reg!(crate::ral::tcd, tcd, DADDR, daddr as u32);
+    }
+
+    /// Set the destination offset in *bytes*
+    ///
+    /// `offset` could be negative, which would decrement the address.
+    pub fn set_destination_offset_bytes(&self, offset: i16) {
+        // Immutable write OK. 16-bit aligned store on DOFF.
+        let tcd = self.tcd();
+        ral::write_reg!(crate::ral::tcd, tcd, DOFF, offset);
+    }
+
+    /// Set the destination offset in *element counts*
+    ///
+    /// `counts` could be negative, which would decrement the address.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the number of elements cannot be expressed as a number of bytes.
+    pub fn set_destination_offset_elements<E: Element>(&self, counts: i16) {
+        self.set_destination_offset_bytes(
+            counts
+                .checked_mul(core::mem::size_of::<E>() as i16)
+                .unwrap(),
+        )
+    }
+
     /// Prepare the source of a transfer; see [`Transfer`](struct.Transfer.html) for details.
     ///
     /// # Safety
