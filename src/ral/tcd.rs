@@ -11,7 +11,8 @@ pub struct RegisterBlock {
     // Signed numbers for offsets / 'last' members intentional.
     // The hardware treats them as signed numbers.
     pub SOFF: RWRegister<i16>,
-    pub ATTR: RWRegister<u16>,
+    pub DATTR: RWRegister<u8>,
+    pub SATTR: RWRegister<u8>,
     pub NBYTES: RWRegister<u32>,
     pub SLAST: RWRegister<i32>,
     pub DADDR: RWRegister<u32>,
@@ -31,7 +32,8 @@ impl RegisterBlock {
     pub fn reset(&self) {
         self.SADDR.write(0);
         self.SOFF.write(0);
-        self.ATTR.write(0);
+        self.DATTR.write(0);
+        self.SATTR.write(0);
         self.NBYTES.write(0);
         self.SLAST.write(0);
         self.DADDR.write(0);
@@ -43,13 +45,13 @@ impl RegisterBlock {
     }
 }
 
-pub mod ATTR {
+mod ATTR {
     /// Destination data transfer size
-    pub mod DSIZE {
+    pub mod SIZE {
         /// Offset (0 bits)
-        pub const offset: u16 = 0;
+        pub const offset: u8 = 0;
         /// Mask (3 bits: 0b111 << 0)
-        pub const mask: u16 = 0b111 << offset;
+        pub const mask: u8 = 0b111 << offset;
         /// Read-only values (empty)
         pub mod R {}
         /// Write-only values (empty)
@@ -59,11 +61,11 @@ pub mod ATTR {
     }
 
     /// Destination Address Modulo
-    pub mod DMOD {
+    pub mod MOD {
         /// Offset (3 bits)
-        pub const offset: u16 = 3;
+        pub const offset: u8 = 3;
         /// Mask (5 bits: 0b11111 << 3)
-        pub const mask: u16 = 0b11111 << offset;
+        pub const mask: u8 = 0b11111 << offset;
         /// Read-only values (empty)
         pub mod R {}
         /// Write-only values (empty)
@@ -71,34 +73,16 @@ pub mod ATTR {
         /// Read-write values (empty)
         pub mod RW {}
     }
-
-    /// Source data transfer size
-    pub mod SSIZE {
-        /// Offset (8 bits)
-        pub const offset: u16 = 8;
-        /// Mask (3 bits: 0b111 << 8)
-        pub const mask: u16 = 0b111 << offset;
-        /// Read-only values (empty)
-        pub mod R {}
-        /// Write-only values (empty)
-        pub mod W {}
-        /// Read-write values
-        pub mod RW {}
-    }
-
-    pub mod SMOD {
-        /// Offset (11 bits)
-        pub const offset: u16 = 11;
-        /// Mask (5 bits: 0b11111 << 11)
-        pub const mask: u16 = 0b11111 << offset;
-        /// Read-only values (empty)
-        pub mod R {}
-        /// Write-only values (empty)
-        pub mod W {}
-        /// Read-write values
-        pub mod RW {}
-    }
 }
+
+pub mod DATTR {
+    pub use super::ATTR::*;
+}
+
+pub mod SATTR {
+    pub use super::ATTR::*;
+}
+
 pub mod CSR {
 
     /// Enable an interrupt when major iteration count completes.

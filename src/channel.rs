@@ -150,41 +150,27 @@ impl Channel {
         )
     }
 
-    /// Prepare the source of a transfer; see [`Transfer`](struct.Transfer.html) for details.
-    ///
-    /// # Safety
-    ///
-    /// User must ensure that the memory described by `Transfer` is valid for the lifetime of
-    /// the DMA transaction.
-    pub unsafe fn set_source_transfer<E: Element>(&mut self, transfer: &Transfer<E>) {
+    /// Set the transfer attributes for the source
+    pub fn set_source_attributes<E: Element>(&self, modulo: u8) {
         let tcd = self.tcd();
-        ral::write_reg!(crate::ral::tcd, tcd, SADDR, transfer.address as u32);
-        ral::write_reg!(crate::ral::tcd, tcd, SOFF, transfer.offset);
-        ral::modify_reg!(crate::ral::tcd, tcd, ATTR, SSIZE: E::DATA_TRANSFER_ID, SMOD: transfer.modulo);
         ral::write_reg!(
             crate::ral::tcd,
             tcd,
-            SLAST,
-            transfer.last_address_adjustment
+            SATTR,
+            MOD: modulo,
+            SIZE: E::DATA_TRANSFER_ID
         );
     }
 
-    /// Prepare the destination for a transfer; see [`Transfer`](struct.Transfer.html) for details.
-    ///
-    /// # Safety
-    ///
-    /// User must ensure that the memory described by `Transfer` is valid for the lifetime of
-    /// the DMA transaction.
-    pub unsafe fn set_destination_transfer<E: Element>(&mut self, transfer: &Transfer<E>) {
+    /// Set the transfer attributes for the destination
+    pub fn set_destination_attributes<E: Element>(&self, modulo: u8) {
         let tcd = self.tcd();
-        ral::write_reg!(crate::ral::tcd, tcd, DADDR, transfer.address as u32);
-        ral::write_reg!(crate::ral::tcd, tcd, DOFF, transfer.offset);
-        ral::modify_reg!(crate::ral::tcd, tcd, ATTR, DSIZE: E::DATA_TRANSFER_ID, DMOD: transfer.modulo);
         ral::write_reg!(
             crate::ral::tcd,
             tcd,
-            DLAST_SGA,
-            transfer.last_address_adjustment
+            DATTR,
+            MOD: modulo,
+            SIZE: E::DATA_TRANSFER_ID
         );
     }
 

@@ -7,23 +7,23 @@ pub trait Element: Copy + private::Sealed {
     ///
     /// Part of the TCD API; see documentation on TCD[SSIZE]
     /// and TCD[DSIZE] for more information.
-    const DATA_TRANSFER_ID: u16;
+    const DATA_TRANSFER_ID: u8;
 }
 
 impl Element for u8 {
-    const DATA_TRANSFER_ID: u16 = 0;
+    const DATA_TRANSFER_ID: u8 = 0;
 }
 
 impl Element for u16 {
-    const DATA_TRANSFER_ID: u16 = 1;
+    const DATA_TRANSFER_ID: u8 = 1;
 }
 
 impl Element for u32 {
-    const DATA_TRANSFER_ID: u16 = 2;
+    const DATA_TRANSFER_ID: u8 = 2;
 }
 
 impl Element for u64 {
-    const DATA_TRANSFER_ID: u16 = 3;
+    const DATA_TRANSFER_ID: u8 = 3;
 }
 
 mod private {
