@@ -74,12 +74,10 @@
 
 mod channel;
 mod element;
-mod peripheral;
 mod ral;
 
 pub use channel::{Channel, ChannelConfiguration};
 pub use element::Element;
-pub use peripheral::{Destination, Source};
 pub use ral::tcd::BandwidthControl;
 
 use core::fmt::{self, Debug, Display};
