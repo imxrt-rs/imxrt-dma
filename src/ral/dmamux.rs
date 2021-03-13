@@ -11,5 +11,6 @@ pub struct RegisterBlock {
 
 impl RegisterBlock {
     pub const ENBL: u32 = 1 << 31;
+    pub const TRIG: u32 = 1 << 30;
     pub const A_ON: u32 = 1 << 29;
 }

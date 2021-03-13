@@ -146,32 +146,36 @@ impl Channel {
         ral::write_reg!(crate::ral::tcd, tcd, BITER, iterations);
     }
 
-    /// Enable or disabling triggering from hardware
+    /// Set the DMAMUX channel configuration
     ///
-    /// If source is `Some(value)`, we trigger from hardware identified by the source identifier.
-    /// If `source` is `None`, we disable hardware triggering.
-    pub fn set_trigger_from_hardware(&mut self, source: Option<u32>) {
+    /// See the [`ChannelConfiguration`](crate::channel::ChannelConfiguration) documentation
+    /// for more information.
+    ///
+    /// # Panics
+    ///
+    /// Only the first four DMA channels support periodic triggering from PIT timers. This method
+    /// panics if `triggering` is set for the [`Enable`](crate::channel::ChannelConfiguration)
+    /// variant, but the channel does not support triggering.
+    pub fn set_channel_configuration(&self, configuration: ChannelConfiguration) {
         let chcfg = &self.multiplexer.chcfg[self.index];
-        chcfg.write(0);
-        if let Some(source) = source {
-            chcfg.write(dmamux::RegisterBlock::ENBL | source);
+        match configuration {
+            ChannelConfiguration::Off => chcfg.write(0),
+            ChannelConfiguration::Enable { source, periodic } => {
+                let mut v = source | dmamux::RegisterBlock::ENBL;
+                if periodic {
+                    assert!(
+                        self.channel() < 4,
+                        "Requested DMA periodic triggering on an unsupported channel."
+                    );
+                    v |= dmamux::RegisterBlock::TRIG;
+                }
+                chcfg.write(v);
+            }
+            ChannelConfiguration::AlwaysOn => {
+                // See note in reference manual: when A_ON is high, SOURCE is ignored.
+                chcfg.write(dmamux::RegisterBlock::ENBL | dmamux::RegisterBlock::A_ON)
+            }
         }
-    }
-
-    /// Set this DMA channel as always on
-    ///
-    /// Use `set_always_on()` so that the DMA multiplexer drives the transfer with no
-    /// throttling. Specifically, an "always-on" transfer will not need explicit re-activiation
-    /// between major loops.
-    ///
-    /// Use an always-on channel for memory-to-memory transfers, so that you don't need explicit
-    /// software re-activation to maintain the transfer. On the other hand, most peripheral transfers
-    /// should not use an always-on channel, since the peripheral should control the data flow through
-    /// explicit activation.
-    pub fn set_always_on(&mut self) {
-        let chcfg = &self.multiplexer.chcfg[self.index];
-        chcfg.write(0);
-        chcfg.write(dmamux::RegisterBlock::ENBL | dmamux::RegisterBlock::A_ON);
     }
 
     /// Returns `true` if the DMA channel is receiving a service signal from hardware
@@ -411,3 +415,47 @@ impl<E: Element> Transfer<E> {
 // They can't be cloned or copied, so there's no chance of
 // them being (mutably) shared.
 unsafe impl Send for Channel {}
+
+/// DMAMUX channel configuration
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum ChannelConfiguration {
+    /// The DMAMUX channel is disabled
+    Off,
+    /// The DMAMUX is enabled, permitting hardware triggering.
+    /// See [`enable()`](ChannelConfiguration::enable) to enable
+    /// the channel without periodic triggering.
+    Enable {
+        /// The DMA channel source (slot number)
+        ///
+        /// Specifies which DMA source is routed to the DMA channel.
+        source: u32,
+        /// Set the periodic triggering flag to schedule DMA transfers on PIT
+        /// timer scheduling.
+        ///
+        /// `periodic` only works for the first four DMA channels, since
+        /// it corresponds to the PIT timers.
+        periodic: bool,
+    },
+    /// The DMAMUX is always on, and there's no need for software
+    /// or hardware activation
+    ///
+    /// Use `AlwaysOn` for
+    /// - memory-to-memory transfers
+    /// - memory to external bus transfers
+    AlwaysOn,
+}
+
+impl ChannelConfiguration {
+    /// Enable the channel without triggering
+    ///
+    /// Shorthand for `ChannelConfiguration::Enable { source, periodic: false }`.
+    /// Use `enable()` to avoid possible panics in
+    /// [`set_channel_configuration`](crate::Channel::set_channel_configuration).
+    pub const fn enable(source: u32) -> Self {
+        ChannelConfiguration::Enable {
+            source,
+            periodic: false,
+        }
+    }
+}

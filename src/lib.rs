@@ -21,7 +21,7 @@
 //! Use DMA channel 7 to perform a DMA-powered memory copy.
 //!
 //! ```no_run
-//! use imxrt_dma::{Channel, Transfer};
+//! use imxrt_dma::{Channel, Transfer, ChannelConfiguration};
 //!
 //! let mut channel = unsafe { Channel::new(7) };
 //! channel.reset();
@@ -32,7 +32,7 @@
 //! let tx = unsafe { Transfer::buffer_linear(source.as_ptr(), source.len()) };
 //! let rx = unsafe { Transfer::buffer_linear(destination.as_ptr(), destination.len()) };
 //!
-//! channel.set_always_on();
+//! channel.set_channel_configuration(ChannelConfiguration::AlwaysOn);
 //! channel.set_disable_on_completion(true);
 //!
 //! unsafe {
@@ -77,7 +77,7 @@ mod element;
 mod peripheral;
 mod ral;
 
-pub use channel::{Channel, Transfer};
+pub use channel::{Channel, ChannelConfiguration, Transfer};
 pub use element::Element;
 pub use peripheral::{Destination, Source};
 pub use ral::tcd::BandwidthControl;
@@ -164,7 +164,9 @@ where
     let rx = Transfer::hardware(destination.destination());
 
     destination.enable_destination();
-    channel.set_trigger_from_hardware(Some(destination.destination_signal()));
+    channel.set_channel_configuration(ChannelConfiguration::enable(
+        destination.destination_signal(),
+    ));
     channel.set_source_transfer(&tx);
     channel.set_destination_transfer(&rx);
     channel.set_minor_loop_elements::<E>(1);
@@ -212,7 +214,7 @@ where
     let rx = Transfer::buffer_linear(destination.as_ptr(), destination.len());
 
     source.enable_source();
-    channel.set_trigger_from_hardware(Some(source.source_signal()));
+    channel.set_channel_configuration(ChannelConfiguration::enable(source.source_signal()));
     channel.set_source_transfer(&tx);
     channel.set_destination_transfer(&rx);
     channel.set_minor_loop_elements::<E>(1);
