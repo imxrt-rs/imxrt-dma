@@ -1,6 +1,6 @@
 //! DMA multiplexer
 
-use super::register::RWRegister;
+use super::RWRegister;
 
 /// DMA multiplexer configuration registers
 #[repr(C)]

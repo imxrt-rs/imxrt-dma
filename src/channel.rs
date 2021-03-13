@@ -4,7 +4,7 @@ use core::mem;
 
 use crate::{
     element::Element,
-    ral::{dma, dmamux, tcd::BandwidthControl, Static, DMA, MULTIPLEXER},
+    ral::{self, dma, dmamux, tcd::BandwidthControl, Static, DMA, MULTIPLEXER},
     ErrorStatus,
 };
 
@@ -32,7 +32,7 @@ impl Channel {
     pub fn set_bandwidth_control(&mut self, bandwidth: Option<BandwidthControl>) {
         let raw = BandwidthControl::raw(bandwidth);
         let tcd = self.tcd();
-        modify_reg!(crate::ral::tcd, tcd, CSR, BWC: raw);
+        ral::modify_reg!(crate::ral::tcd, tcd, CSR, BWC: raw);
     }
 
     /// Returns the DMA channel number
@@ -90,10 +90,10 @@ impl Channel {
     /// the DMA transaction.
     pub unsafe fn set_source_transfer<E: Element>(&mut self, transfer: &Transfer<E>) {
         let tcd = self.tcd();
-        write_reg!(crate::ral::tcd, tcd, SADDR, transfer.address as u32);
-        write_reg!(crate::ral::tcd, tcd, SOFF, transfer.offset);
-        modify_reg!(crate::ral::tcd, tcd, ATTR, SSIZE: E::DATA_TRANSFER_ID, SMOD: transfer.modulo);
-        write_reg!(
+        ral::write_reg!(crate::ral::tcd, tcd, SADDR, transfer.address as u32);
+        ral::write_reg!(crate::ral::tcd, tcd, SOFF, transfer.offset);
+        ral::modify_reg!(crate::ral::tcd, tcd, ATTR, SSIZE: E::DATA_TRANSFER_ID, SMOD: transfer.modulo);
+        ral::write_reg!(
             crate::ral::tcd,
             tcd,
             SLAST,
@@ -109,10 +109,10 @@ impl Channel {
     /// the DMA transaction.
     pub unsafe fn set_destination_transfer<E: Element>(&mut self, transfer: &Transfer<E>) {
         let tcd = self.tcd();
-        write_reg!(crate::ral::tcd, tcd, DADDR, transfer.address as u32);
-        write_reg!(crate::ral::tcd, tcd, DOFF, transfer.offset);
-        modify_reg!(crate::ral::tcd, tcd, ATTR, DSIZE: E::DATA_TRANSFER_ID, DMOD: transfer.modulo);
-        write_reg!(
+        ral::write_reg!(crate::ral::tcd, tcd, DADDR, transfer.address as u32);
+        ral::write_reg!(crate::ral::tcd, tcd, DOFF, transfer.offset);
+        ral::modify_reg!(crate::ral::tcd, tcd, ATTR, DSIZE: E::DATA_TRANSFER_ID, DMOD: transfer.modulo);
+        ral::write_reg!(
             crate::ral::tcd,
             tcd,
             DLAST_SGA,
@@ -125,7 +125,7 @@ impl Channel {
     /// Describes how many bytes we should transfer for each DMA service request.
     pub fn set_minor_loop_bytes(&mut self, nbytes: u32) {
         let tcd = self.tcd();
-        write_reg!(crate::ral::tcd, tcd, NBYTES, nbytes);
+        ral::write_reg!(crate::ral::tcd, tcd, NBYTES, nbytes);
     }
 
     /// Se the number of elements to move in each minor loop
@@ -142,8 +142,8 @@ impl Channel {
     /// service request, either from hardware or from software.
     pub fn set_transfer_iterations(&mut self, iterations: u16) {
         let tcd = self.tcd();
-        write_reg!(crate::ral::tcd, tcd, CITER, iterations);
-        write_reg!(crate::ral::tcd, tcd, BITER, iterations);
+        ral::write_reg!(crate::ral::tcd, tcd, CITER, iterations);
+        ral::write_reg!(crate::ral::tcd, tcd, BITER, iterations);
     }
 
     /// Enable or disabling triggering from hardware
@@ -213,7 +213,7 @@ impl Channel {
     /// when it completes a transfer.
     pub fn set_disable_on_completion(&mut self, dreq: bool) {
         let tcd = self.tcd();
-        modify_reg!(crate::ral::tcd, tcd, CSR, DREQ: dreq as u16);
+        ral::modify_reg!(crate::ral::tcd, tcd, CSR, DREQ: dreq as u16);
     }
 
     /// Enable or disable interrupt generation when the transfer completes
@@ -221,13 +221,13 @@ impl Channel {
     /// You're responsible for registering your interrupt handler.
     pub fn set_interrupt_on_completion(&mut self, intr: bool) {
         let tcd = self.tcd();
-        modify_reg!(crate::ral::tcd, tcd, CSR, INTMAJOR: intr as u16);
+        ral::modify_reg!(crate::ral::tcd, tcd, CSR, INTMAJOR: intr as u16);
     }
 
     /// Indicates if the DMA transfer has completed
     pub fn is_complete(&self) -> bool {
         let tcd = self.tcd();
-        read_reg!(crate::ral::tcd, tcd, CSR, DONE == 1)
+        ral::read_reg!(crate::ral::tcd, tcd, CSR, DONE == 1)
     }
 
     /// Clears completion indication
@@ -248,7 +248,7 @@ impl Channel {
     /// Indicates if this DMA channel is actively transferring data
     pub fn is_active(&self) -> bool {
         let tcd = self.tcd();
-        read_reg!(crate::ral::tcd, tcd, CSR, ACTIVE == 1)
+        ral::read_reg!(crate::ral::tcd, tcd, CSR, ACTIVE == 1)
     }
 
     /// Indicates if this DMA channel is enabled

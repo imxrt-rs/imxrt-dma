@@ -2,7 +2,7 @@
 
 #![allow(non_snake_case, non_upper_case_globals)]
 
-use super::register::RWRegister;
+use super::RWRegister;
 
 /// DMA Transfer Control Descriptor (TCD)
 #[repr(C, align(32))]

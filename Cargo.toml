@@ -10,3 +10,6 @@ DMA driver for i.MX RT processors
 """
 keywords = ["imxrt", "nxp", "embedded"]
 categories = ["embedded", "no-std"]
+
+[dependencies]
+imxrt-ral = "0.4.2"

@@ -13,8 +13,10 @@
 
 pub mod dma;
 pub mod dmamux;
-mod register;
 pub mod tcd;
+
+pub use imxrt_ral::{modify_reg, read_reg, write_reg};
+use imxrt_ral::{RORegister, RWRegister, WORegister};
 
 /// Address to the DMA multiplexer registers
 const DMA_MULTIPLEXER_ADDRESS: *const u32 = 0x400E_C000 as *const _;
