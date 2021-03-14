@@ -11,10 +11,10 @@ use crate::{
 /// You should rely on your HAL to allocate `Channel`s. If your HAL does not allocate channels,
 /// or if you're desigining the HAL, use [`new`](#method.new) to create a new DMA channel.
 ///
-/// You must always specify the source and destination transfer descriptors before enabling the
-/// transfer.
+/// The `Channel` stores memory addresses independent of the memory lifetime. You must make
+/// sure that the channel's state is valid before enabling a transfer!
 pub struct Channel {
-    /// Our channel number, expected to be between 0 to (CHANNEL_COUNT - 1)
+    /// Our channel number, expected to be between [0, 32)
     index: usize,
     /// Reference to the DMA registers
     registers: Static<dma::RegisterBlock>,
@@ -23,23 +23,6 @@ pub struct Channel {
 }
 
 impl Channel {
-    /// Set the channel's bandwidth control
-    ///
-    /// - `None` disables bandwidth control (default setting)
-    /// - `Some(bwc)` sets the bandwidth control to `bwc`
-    pub fn set_bandwidth_control(&mut self, bandwidth: Option<BandwidthControl>) {
-        let raw = BandwidthControl::raw(bandwidth);
-        let tcd = self.tcd();
-        ral::modify_reg!(crate::ral::tcd, tcd, CSR, BWC: raw);
-    }
-
-    /// Returns the DMA channel number
-    ///
-    /// Channels are unique and numbered within the half-open range `[0, CHANNEL_COUNT)`.
-    pub fn channel(&self) -> usize {
-        self.index
-    }
-
     /// Creates the DMA channel described by `index`
     ///
     /// # Safety
@@ -63,8 +46,43 @@ impl Channel {
                 multiplexer: MULTIPLEXER,
             }
         } else {
-            panic!("DMA channel index {} exceeds CHANNEL_COUNT", index);
+            panic!("DMA channel index {} exceeds 32", index);
         }
+    }
+
+    /// Enable the DMA channel for transfers
+    ///
+    /// # Safety
+    ///
+    /// `enable()` allows the DMA controller to read and write from the memory
+    /// addresses stored in the channel. This is very unsafe:
+    ///
+    /// - you must ensure that the lifetime of all memory is greater than the
+    ///   lifetime of the transfer
+    /// - you must ensure that no one else is using this channel for anything
+    ///   else
+    /// - if the transfer uses a circular buffer, you must ensure that the circular
+    ///   buffer is correctly sized and aligned.
+    pub unsafe fn enable(&self) {
+        // Immutable write OK. No other methods directly modify ERQ.
+        self.registers.SERQ.write(self.index as u8);
+    }
+
+    /// Returns the DMA channel number
+    ///
+    /// Channels are unique and numbered within the half-open range `[0, 32)`.
+    pub fn channel(&self) -> usize {
+        self.index
+    }
+
+    /// Set the channel's bandwidth control
+    ///
+    /// - `None` disables bandwidth control (default setting)
+    /// - `Some(bwc)` sets the bandwidth control to `bwc`
+    pub fn set_bandwidth_control(&mut self, bandwidth: Option<BandwidthControl>) {
+        let raw = BandwidthControl::raw(bandwidth);
+        let tcd = self.tcd();
+        ral::modify_reg!(crate::ral::tcd, tcd, CSR, BWC: raw);
     }
 
     /// Reset the transfer control descriptor owned by the DMA channel
@@ -213,19 +231,6 @@ impl Channel {
         self.registers.HRS.read() & (1 << self.index) != 0
     }
 
-    /// Enable the DMA multiplexer request, which signals that the transfer is
-    /// ready
-    ///
-    /// # Safety
-    ///
-    /// This could initiate a DMA transaction that uses an invalid source or destination.
-    /// Caller must ensure that the source and destination set in the channel are valid for
-    /// the lifetime of the transfer.
-    pub unsafe fn enable(&self) {
-        // Immutable write OK. No other methods directly modify ERQ.
-        self.registers.SERQ.write(self.index as u8);
-    }
-
     /// Disable the DMA channel, preventing any DMA transfers
     pub fn disable(&self) {
         // Immutable write OK. No other methods directly modify ERQ.
@@ -313,13 +318,7 @@ impl Channel {
     /// to request DMA service.
     ///
     /// Flag is automatically cleared by hardware after it's asserted.
-    ///
-    /// # Safety
-    ///
-    /// This could initiate a DMA transaction that uses an invalid source or destination.
-    /// Caller must ensure that the source and destination set in the channel are valid for
-    /// the lifetime of the transfer.
-    pub unsafe fn start(&self) {
+    pub fn start(&self) {
         // Immutable write OK. SSRT affects a bit in TCD. But, other writes to
         // TCD require &mut reference. Existence of &mut reference blocks
         // start calls.

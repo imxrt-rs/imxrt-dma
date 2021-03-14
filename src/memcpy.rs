@@ -85,8 +85,7 @@ impl<'a> Future for Memcpy<'a> {
         let transfer = unsafe { self.as_mut().map_unchecked_mut(|this| &mut this.transfer) };
         let poll = transfer.poll(cx);
         if poll.is_pending() && !self.channel.is_active() {
-            // Safety: memory properly prepared
-            unsafe { self.channel.start() };
+            self.channel.start();
         }
         poll
     }

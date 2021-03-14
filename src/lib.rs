@@ -2,10 +2,10 @@
 //!
 //! `imxrt-dma` provides
 //!
-//! - an unsafe API for defining and scheduling transfers with DMA [`Channel`](crate::channel::Channel)s
-//! - an unsafe DMA [`Transfer`](crate::interrupt::Transfer) future, which can perform
-//!   a transfer, and wake an async executor.
-//! - safe DMA transfers for memcpy, peripheral-to-memory, and memory-to-peripheral
+//! - an unsafe API for defining and scheduling transfers with DMA `Channel`s
+//!   and `Transfer`s
+//! - safe DMA futures for memcpy, peripheral-to-memory, and memory-to-peripheral
+//!   transfers
 //!
 //! This DMA driver may be re-exported from a HAL. If it is, you should consider
 //! using the safer APIs provided by your HAL.
