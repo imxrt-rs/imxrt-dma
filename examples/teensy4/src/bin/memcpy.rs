@@ -8,6 +8,7 @@
 #![no_main]
 
 use bsp::hal::ral;
+use ral::interrupt;
 use teensy4_bsp as bsp;
 
 #[cortex_m_rt::entry]
@@ -28,6 +29,8 @@ fn main() -> ! {
     );
 
     let mut channel = channels[7].take().unwrap();
+    channel.set_interrupt_on_completion(true);
+    unsafe { cortex_m::peripheral::NVIC::unmask(interrupt::DMA7_DMA23) };
 
     let mut value = 1u32;
     loop {
@@ -35,7 +38,7 @@ fn main() -> ! {
         let mut destination = [0u32; 256];
 
         let memcpy = imxrt_dma::memcpy(&source, &mut destination, &mut channel);
-        let result = support::block(memcpy);
+        let result = support::wfi(memcpy);
         assert!(result.is_ok());
 
         for (idx, dst) in destination.iter().enumerate() {
@@ -46,4 +49,10 @@ fn main() -> ! {
         systick.delay(1000);
         value += 1;
     }
+}
+
+#[cortex_m_rt::interrupt]
+fn DMA7_DMA23() {
+    // Safety: channel 7 is a valid channel.
+    unsafe { imxrt_dma::on_interrupt(7) };
 }
