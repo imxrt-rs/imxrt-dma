@@ -4,13 +4,14 @@
 
 pub mod logging;
 
+use bsp::hal::ral;
 use core::{
     future::Future,
     pin::Pin,
     task::{Context, Poll, RawWaker, RawWakerVTable, Waker},
 };
 use imxrt_dma::Channel;
-use teensy4_bsp::hal::ral;
+use teensy4_bsp as bsp;
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
@@ -31,6 +32,12 @@ pub fn channels(_: ral::dma0::Instance, _: ral::dmamux::Instance) -> [Option<Cha
         *channel = Some(chan);
     }
     channels
+}
+
+/// Return the Teensy 4.0 pins collection
+pub fn pins(_: ral::iomuxc::Instance) -> bsp::t40::Pins {
+    // Safety: we own the IOMUXC instance
+    unsafe { bsp::t40::Pins::new() }
 }
 
 /// Block until the future resolves...
