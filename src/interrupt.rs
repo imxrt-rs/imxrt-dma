@@ -113,6 +113,7 @@ pub unsafe fn on_error(max_channel: usize) {
 }
 
 type SharedWaker = Mutex<RefCell<Option<Waker>>>;
+#[allow(clippy::declare_interior_mutable_const)] // Very convenient, and usage for static init deemed OK in clippy docs
 const NO_WAKER: SharedWaker = Mutex::new(RefCell::new(None));
 static WAKERS: [SharedWaker; 32] = [NO_WAKER; 32];
 
