@@ -39,6 +39,10 @@ use cortex_m::interrupt::{self, Mutex};
 /// Caller must ensure that `on_interrupt` is called in the correct interrupt
 /// handler. Caller must ensure that `channel` is valid for the given system,
 /// and for the interrupt handler.
+///
+/// # Panics
+///
+/// Panics if `channel` is greater than 32.
 #[inline(always)]
 pub unsafe fn on_interrupt(channel: usize) {
     let channel = Channel::new(channel);
