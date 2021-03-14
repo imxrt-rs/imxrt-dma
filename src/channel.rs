@@ -3,7 +3,7 @@
 use crate::{
     element::Element,
     ral::{self, dma, dmamux, tcd::BandwidthControl, Static, DMA, MULTIPLEXER},
-    ErrorStatus,
+    Error,
 };
 
 /// A DMA channel
@@ -301,8 +301,8 @@ impl Channel {
     ///
     /// It may reflect the last channel that produced an error, and that
     /// may not be related to this channel.
-    pub fn error_status(&self) -> ErrorStatus {
-        ErrorStatus::new(self.registers.ES.read())
+    pub fn error_status(&self) -> Error {
+        Error::new(self.registers.ES.read())
     }
 
     /// Start a DMA transfer

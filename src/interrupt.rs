@@ -1,6 +1,6 @@
 //! DMA interrupt support
 
-use crate::{Channel, ErrorStatus};
+use crate::{Channel, Error};
 use core::{
     cell::RefCell,
     future::Future,
@@ -63,7 +63,7 @@ impl<'a> Transfer<'a> {
 }
 
 impl<'a> Future for Transfer<'a> {
-    type Output = Result<(), ErrorStatus>;
+    type Output = Result<(), Error>;
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         interrupt::free(|cs| {
             let waker = WAKERS[self.channel.channel()].borrow(cs);

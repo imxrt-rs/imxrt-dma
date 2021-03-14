@@ -1,6 +1,6 @@
 //! DMA-powered memcpy
 
-use crate::{interrupt::Transfer, Channel, Element, ErrorStatus};
+use crate::{interrupt::Transfer, Channel, Element, Error};
 
 use core::{
     future::Future,
@@ -50,7 +50,7 @@ pub fn memcpy<'a, E: Element>(
 }
 
 impl<'a> Future for Memcpy<'a> {
-    type Output = Result<(), ErrorStatus>;
+    type Output = Result<(), Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         // Safety: data not moved

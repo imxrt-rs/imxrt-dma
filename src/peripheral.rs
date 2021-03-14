@@ -1,6 +1,6 @@
 //! DMA support for hardware peripherals
 
-use super::{Channel, ChannelConfiguration, Element, ErrorStatus, Transfer};
+use super::{Channel, ChannelConfiguration, Element, Error, Transfer};
 
 use core::{
     future::Future,
@@ -111,7 +111,7 @@ where
     S: Source<E>,
     E: Element,
 {
-    type Output = Result<(), ErrorStatus>;
+    type Output = Result<(), Error>;
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         // Safety: no movement from transfer future...
         unsafe { self.map_unchecked_mut(|this| &mut this.transfer) }.poll(cx)
@@ -175,7 +175,7 @@ where
     D: Destination<E>,
     E: Element,
 {
-    type Output = Result<(), ErrorStatus>;
+    type Output = Result<(), Error>;
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         // Safety: no movement from transfer future...
         unsafe { self.map_unchecked_mut(|this| &mut this.transfer) }.poll(cx)
@@ -301,7 +301,7 @@ where
     P: Bidirectional<E>,
     E: Element,
 {
-    type Output = Result<(), ErrorStatus>;
+    type Output = Result<(), Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         // Schedule the receive first...
