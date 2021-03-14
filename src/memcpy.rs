@@ -10,7 +10,8 @@ use core::{
 
 /// A memcpy operation
 ///
-/// The future yields when the copy is complete.
+/// `Memcpy` yields when it's moved the minimum amount of elements between two linear
+/// buffers. Use the [`memcpy`](crate::memcpy::memcpy) function to define the transfer.
 pub struct Memcpy<'a> {
     transfer: Transfer<'a>,
     channel: &'a Channel,
@@ -20,7 +21,34 @@ pub struct Memcpy<'a> {
 ///
 /// Copies the minimum number of elements between the two buffers. You're responsible
 /// for enabling any interrupts, and calling [`on_interrupt`](crate::interrupt::on_interrupt)
-/// if the interrupt fires.
+/// if the interrupt fires. Otherwise, you may poll the transfer until completion.
+///
+/// # Example
+///
+/// Transfer 5 `u32`s between a source and destination buffer. The transfer completes when
+/// the DMA channel 7 interrupt fires.
+///
+/// ```no_run
+/// use imxrt_dma::{Channel, memcpy, on_interrupt};
+///
+/// // #[cortex_m_rt::interrupt]
+/// fn DMA7() {
+///     // Safety: DMA channel 7 valid
+///     unsafe { on_interrupt(7) };
+/// }
+///
+/// let mut channel_7: Channel = // DMA channel 7
+///     # unsafe { Channel::new(7) };
+/// channel_7.set_interrupt_on_completion(true);
+/// // TODO unmask DMA7 interrupt!
+///
+/// let source = [4u32, 5, 6, 7, 8];
+/// let mut destination = [0; 5];
+///
+/// let transfer = memcpy::memcpy(&source, &mut destination, &mut channel_7);
+/// # mod executor { pub fn wfi(_: impl core::future::Future) {} }
+/// executor::wfi(transfer);
+/// ```
 pub fn memcpy<'a, E: Element>(
     source: &'a [E],
     destination: &'a mut [E],

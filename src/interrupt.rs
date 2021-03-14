@@ -112,15 +112,56 @@ type SharedWaker = Mutex<RefCell<Option<Waker>>>;
 const NO_WAKER: SharedWaker = Mutex::new(RefCell::new(None));
 static WAKERS: [SharedWaker; 32] = [NO_WAKER; 32];
 
-/// The root DMA transfer future
+/// The core DMA transfer future
 ///
-/// `Transfer` is woken by a call to `on_interrupt` once the transfer is complete.
+/// `Transfer` is a future that drives the DMA transfer. `Transfer` will
+/// initiate a DMA transfer when it is first polled. You may then poll it
+/// to understand when the transfer completes.
+///
+/// To cancel a transfer, drop the `Transfer`.
+///
+/// If you've enabled DMA interrupts, consider using [`on_interrupt`](crate::on_interrupt)
+/// and [`on_error`](crate::on_error) to wake an executor when the DMA transfer completes,
+/// or the DMA controller observes an error. The interrupt interface assumes that you've
+///
+/// - configured your channel to generate interrupts
+/// - registered a DMA ISR with your embedded runtime
+/// - unmasked the DMA interrupt in the NVIC
+///
+/// `Transfer` calls the unsafe [`enable`](crate::Channel::enable) method to enable a
+/// DMA transfer. To properly use `Transfer`, make sure that you've configured your DMA
+/// channel for a valid, safe transfer.
+///
+/// `Transfer` is the core DMA future used in `imxrt_dma`. For safe DMA transfers, consider
+/// using
+///
+/// - [`Memcpy`](crate::memcpy::Memcpy) for buffer-to-buffer DMA transfers
+/// - [`Rx`](crate::peripheral::Rx) for peripheral-to-memory DMA transfers
+/// - [`Tx`](crate::peripheral::Tx) for memory-to-peripheral DMA transfers
+///
+/// `Transfer` is designed to the DMA `Channel` public interface. If you need to implement
+/// your own transfer future, you may do so.
+///
+/// ```no_run
+/// use imxrt_dma::{Channel, Transfer};
+///
+/// let my_channel: Channel = // Acquire your channel...
+///     # unsafe { Channel::new(0) };
+/// // Properly prepare your transfer...
+/// // Safety: transfer properly prepared
+/// let my_transfer = unsafe { Transfer::new(&my_channel) };
+/// // Execute your transfer with a blocking executor...
+/// # mod executor { pub fn block<F: core::future::Future>(_: F) {} }
+/// executor::block(my_transfer);
+/// ```
 pub struct Transfer<'a> {
     channel: &'a Channel,
     _pinned: PhantomPinned,
 }
 
 impl<'a> Transfer<'a> {
+    /// Create a new `Transfer` that performs the DMA transfer described by `channel`
+    ///
     /// # Safety
     ///
     /// Assumes that the transfer is correctly defined in the DMA channel memory.
