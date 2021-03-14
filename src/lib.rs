@@ -16,47 +16,6 @@
 //! only support 16 DMA channels. Creating an invalid channel for your 1010 processor
 //! will result in a channel that references reserved memory.
 //!
-//! # Example
-//!
-//! Use DMA channel 7 to perform a DMA-powered memory copy.
-//!
-//! ```no_run
-//! use imxrt_dma::{Channel, Transfer, ChannelConfiguration};
-//!
-//! let mut channel = unsafe { Channel::new(7) };
-//! channel.reset();
-//!
-//! let source: [u32; 32] = [5; 32];
-//! let destination: [u32; 32] = [0; 32];
-//!
-//! let tx = unsafe { Transfer::buffer_linear(source.as_ptr(), source.len()) };
-//! let rx = unsafe { Transfer::buffer_linear(destination.as_ptr(), destination.len()) };
-//!
-//! channel.set_channel_configuration(ChannelConfiguration::AlwaysOn);
-//! channel.set_disable_on_completion(true);
-//!
-//! unsafe {
-//!     channel.set_source_transfer(&tx);
-//!     channel.set_destination_transfer(&rx);
-//! }
-//!
-//! channel.set_minor_loop_bytes(core::mem::size_of::<u32>() as u32);
-//! channel.set_transfer_iterations(source.len() as u16);
-//!
-//! unsafe {
-//!     channel.enable();
-//!     channel.start();
-//! }
-//!
-//! if channel.is_error() {
-//!     panic!("Transaction failed!");
-//! }
-//!
-//! while !channel.is_complete() {}
-//!
-//! assert_eq!(destination, [5;32]);
-//! ```
-//!
 //! ### License
 //!
 //! Licensed under either of
@@ -83,7 +42,7 @@ mod ral;
 pub use channel::{Channel, ChannelConfiguration};
 pub use element::Element;
 pub use error::Error;
-pub use interrupt::{on_interrupt, Transfer};
+pub use interrupt::{on_error, on_interrupt, Transfer};
 pub use ral::tcd::BandwidthControl;
 
 /// A DMA result
