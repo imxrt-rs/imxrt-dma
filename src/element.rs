@@ -5,8 +5,8 @@
 pub trait Element: Copy + private::Sealed {
     /// An identifier describing the data transfer size
     ///
-    /// Part of the TCD API; see documentation on TCD[SSIZE]
-    /// and TCD[DSIZE] for more information.
+    /// Part of the TCD API; see documentation on TCD\[SSIZE\]
+    /// and TCD\[DSIZE\] for more information.
     const DATA_TRANSFER_ID: u8;
 }
 
