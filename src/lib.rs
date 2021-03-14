@@ -76,6 +76,7 @@ mod channel;
 mod element;
 mod futures;
 mod interrupt;
+pub mod peripheral;
 mod ral;
 
 pub use channel::{Channel, ChannelConfiguration};
