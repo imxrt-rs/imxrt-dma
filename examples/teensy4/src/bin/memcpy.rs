@@ -37,7 +37,7 @@ fn main() -> ! {
         let source = [value; 256];
         let mut destination = [0u32; 256];
 
-        let memcpy = imxrt_dma::memcpy(&source, &mut destination, &mut channel);
+        let memcpy = imxrt_dma::memcpy::memcpy(&source, &mut destination, &mut channel);
         let result = support::wfi(memcpy);
         assert!(result.is_ok());
 

@@ -1,4 +1,4 @@
-//! DMA futures
+//! DMA-powered memcpy
 
 use crate::{interrupt::Transfer, Channel, Element, ErrorStatus};
 
