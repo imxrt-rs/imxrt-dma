@@ -74,10 +74,14 @@
 
 mod channel;
 mod element;
+mod futures;
+mod interrupt;
 mod ral;
 
 pub use channel::{Channel, ChannelConfiguration};
 pub use element::Element;
+pub use futures::{memcpy, Memcpy};
+pub use interrupt::{on_interrupt, Transfer};
 pub use ral::tcd::BandwidthControl;
 
 use core::fmt::{self, Debug, Display};
