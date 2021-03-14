@@ -18,21 +18,28 @@ pub struct Memcpy<'a> {
 
 /// Perform a DMA-powered `memcpy` between the `source` and `destination` buffers
 ///
-/// Copies the minimum number of elements between the two buffers. `memcpy` modifies
-/// the channel's state in an implementation-specific manner. You will need to reconfigure
-/// the channel for the next transfer.
+/// Copies the minimum number of elements between the two buffers. You're responsible
+/// for enabling any interrupts, and calling [`on_interrupt`](crate::interrupt::on_interrupt)
+/// if the interrupt fires.
 pub fn memcpy<'a, E: Element>(
     source: &'a [E],
-    destination: &'a [E],
+    destination: &'a mut [E],
     channel: &'a mut Channel,
 ) -> Memcpy<'a> {
-    channel.set_interrupt_on_completion(true);
-    channel.set_disable_on_completion(true);
-
-    channel.set_channel_configuration(super::ChannelConfiguration::Off);
     super::set_source_linear_buffer(channel, source);
     super::set_destination_linear_buffer(channel, destination);
-    channel.set_minor_loop_bytes(source.len().min(destination.len()) as u32);
+
+    // Turn off any DMAMUX configuration.
+    //
+    // Alternatively, we could use an always-on transfer, which might not need an
+    // explicit "start()" activation. This means we could express the transfer
+    // as a series of major loops, each transferring sizeof(E) bytes in the minor
+    // loop. TBD...
+    channel.set_channel_configuration(super::ChannelConfiguration::Off);
+    // Transfer all elements in a single major loop
+    channel.set_minor_loop_bytes(
+        core::mem::size_of::<E>().saturating_mul(source.len().min(destination.len())) as u32,
+    );
     channel.set_transfer_iterations(1);
 
     Memcpy {

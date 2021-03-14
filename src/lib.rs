@@ -169,7 +169,7 @@ pub fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
 ///
 /// When the transfer completes, the DMA channel will point at the
 /// start of the buffer.
-pub fn set_destination_linear_buffer<E: Element>(chan: &mut Channel, destination: &[E]) {
+pub fn set_destination_linear_buffer<E: Element>(chan: &mut Channel, destination: &mut [E]) {
     chan.set_destination_address(destination.as_ptr());
     chan.set_destination_offset(core::mem::size_of::<E>() as i16);
     chan.set_destination_attributes::<E>(0);
@@ -230,7 +230,7 @@ pub fn set_source_circular_buffer<E: Element>(chan: &mut Channel, source: &[E]) 
 ///
 /// - the capacity is not a power of two
 /// - the alignment is not a multiple of the buffer's size in bytes
-pub fn set_destination_circular_buffer<E: Element>(chan: &mut Channel, destination: &[E]) {
+pub fn set_destination_circular_buffer<E: Element>(chan: &mut Channel, destination: &mut [E]) {
     circular_buffer_asserts(destination);
     let modulo = circular_buffer_modulo(destination);
 
