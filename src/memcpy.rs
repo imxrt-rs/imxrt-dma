@@ -54,6 +54,7 @@ pub fn memcpy<'a, E: Element>(
     destination: &'a mut [E],
     channel: &'a mut Channel,
 ) -> Memcpy<'a> {
+    channel.set_disable_on_completion(true);
     super::set_source_linear_buffer(channel, source);
     super::set_destination_linear_buffer(channel, destination);
 
