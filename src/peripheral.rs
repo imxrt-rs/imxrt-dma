@@ -130,6 +130,21 @@ where
     }
 }
 
+fn prepare_receive<S, E>(channel: &mut Channel, source: &mut S, buffer: &mut [E])
+where
+    S: Source<E>,
+    E: Element,
+{
+    channel.set_disable_on_completion(true);
+    channel.set_channel_configuration(ChannelConfiguration::enable(source.source_signal()));
+    super::set_source_hardware(channel, source.source_address());
+    super::set_destination_linear_buffer(channel, buffer);
+    channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
+    channel.set_transfer_iterations(buffer.len() as u16);
+
+    source.enable_source();
+}
+
 /// Use a DMA channel to receive a `buffer` of elements from the source peripheral
 pub fn receive<'a, S, E>(
     channel: &'a mut Channel,
@@ -140,13 +155,7 @@ where
     S: Source<E>,
     E: Element,
 {
-    channel.set_channel_configuration(ChannelConfiguration::enable(source.source_signal()));
-    super::set_source_hardware(channel, source.source_address());
-    super::set_destination_linear_buffer(channel, buffer);
-    channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
-    channel.set_transfer_iterations(buffer.len() as u16);
-
-    source.enable_source();
+    prepare_receive(channel, source, buffer);
     Rx {
         channel,
         // Safety: transfer is correctly defined
@@ -194,16 +203,12 @@ where
     }
 }
 
-/// Use a DMA channel to send a `buffer` of data to the destination peripheral
-pub fn transfer<'a, D, E>(
-    channel: &'a mut Channel,
-    buffer: &'a [E],
-    destination: &'a mut D,
-) -> Tx<'a, D, E>
+fn prepare_transfer<D, E>(channel: &mut Channel, buffer: &[E], destination: &mut D)
 where
     D: Destination<E>,
     E: Element,
 {
+    channel.set_disable_on_completion(true);
     channel.set_channel_configuration(ChannelConfiguration::enable(
         destination.destination_signal(),
     ));
@@ -214,6 +219,19 @@ where
     channel.set_transfer_iterations(buffer.len() as u16);
 
     destination.enable_destination();
+}
+
+/// Use a DMA channel to send a `buffer` of data to the destination peripheral
+pub fn transfer<'a, D, E>(
+    channel: &'a mut Channel,
+    buffer: &'a [E],
+    destination: &'a mut D,
+) -> Tx<'a, D, E>
+where
+    D: Destination<E>,
+    E: Element,
+{
+    prepare_transfer(channel, buffer, destination);
     Tx {
         channel,
         destination,
@@ -268,21 +286,8 @@ where
     P: Bidirectional<E>,
     E: Element,
 {
-    // RX channel takes data from the peripheral, and moves it to the buffer..
-    rx_channel.set_channel_configuration(ChannelConfiguration::enable(peripheral.source_signal()));
-    super::set_source_hardware(rx_channel, peripheral.source_address());
-    super::set_destination_linear_buffer(rx_channel, buffer);
-    rx_channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
-    rx_channel.set_transfer_iterations(buffer.len() as u16);
-
-    // TX channel takes data from the buffer, and sends it to the peripheral
-    tx_channel.set_channel_configuration(ChannelConfiguration::enable(
-        peripheral.destination_signal(),
-    ));
-    super::set_source_linear_buffer(tx_channel, buffer);
-    super::set_destination_hardware(tx_channel, peripheral.destination_address());
-    tx_channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
-    tx_channel.set_transfer_iterations(buffer.len() as u16);
+    prepare_transfer(tx_channel, buffer, peripheral);
+    prepare_receive(rx_channel, peripheral, buffer);
 
     FullDuplex {
         rx_channel,
