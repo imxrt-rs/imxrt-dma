@@ -48,3 +48,15 @@ jobs:
       with:
         command: test
         args: --verbose
+
+  # Make sure documentation builds, and doclinks are valid
+  doc:
+    env:
+      RUSTDOCFLAGS: -D warnings
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Check documentation and doclinks
+      uses: actions-rs/cargo@v1
+      with:
+        command: rustdoc
