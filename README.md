@@ -1,6 +1,11 @@
-# imxrt-dma
+imxrt-dma
+=========
 
-Direct Memory Access (DMA) driver for i.MX RT processors
+DMA driver for i.MX RT microcontrollers
+
+**[API Docs (main branch)][main-api-docs]**
+
+[main-api-docs]: https://imxrt-rs.github.io/imxrt-dma/
 
 `imxrt-dma` provides
 
@@ -9,18 +14,11 @@ Direct Memory Access (DMA) driver for i.MX RT processors
 - safe DMA futures for memcpy, peripheral-to-memory, and memory-to-peripheral
   transfers
 
-This DMA driver may be re-exported from a HAL. If it is, you should consider
-using the safer APIs provided by your HAL.
+See the API docs for more information. To try examples on hardware, see the
+examples directory.
 
-## Portability
-
-This DMA driver works across all considered i.MX RT variants (1010 and 1060
-family). You must make sure that the DMA channel you're creating is valid for
-your i.MX RT processor. This only matters on i.MX RT 1010 processors, which
-only support 16 DMA channels. Creating an invalid channel for your 1010 processor
-will result in a channel that references reserved memory.
-
-#### License
+License
+-------
 
 Licensed under either of
 
@@ -32,5 +30,3 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
-
-License: MIT OR Apache-2.0
