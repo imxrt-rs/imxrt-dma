@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["imxrt_dma"] = [{"text":"impl Copy for ChannelConfiguration","synthetic":false,"types":[]},{"text":"impl Copy for Error","synthetic":false,"types":[]},{"text":"impl Copy for BandwidthControl","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

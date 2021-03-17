@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["memcpy","Perform a DMA-powered `memcpy` between the `source` and `destination` buffers"]],"struct":[["Memcpy","A memcpy operation"]]});
