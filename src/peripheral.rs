@@ -20,11 +20,6 @@ use core::{
 /// `Source` should only be implemented on peripherals that are
 /// DMA capable. This trait should be implemented by HAL authors
 /// who are exposing DMA capable peripherals.
-///
-/// The `enable_source` and `disable_source` methods may have
-/// interior mutability. The implementer must ensure that any modifications
-/// are atomic. The `Source` consumer will assume that `enable_source` and
-/// `disable_source` are correct, and that they are safe to call.
 pub unsafe trait Source<E: Element> {
     /// Peripheral source request signal
     ///
@@ -63,11 +58,6 @@ pub unsafe trait Source<E: Element> {
 /// `Destination` should only be implemented on peripherals that are
 /// DMA capable. This trait should be implemented by HAL authors
 /// who are exposing DMA capable peripherals.
-///
-/// The `enable_destination` and `disable_destination` methods may have
-/// interior mutability. The implementer must ensure that any modifications
-/// are atomic. The `Source` consumer will assume that `enable_destination` and
-/// `disable_destination` are correct, and that they are safe to call.
 pub unsafe trait Destination<E: Element> {
     /// Peripheral destination request signal
     ///
@@ -309,7 +299,6 @@ where
     type Output = Result<(), Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        // Schedule the receive first...
         if !self.rx_done {
             // Safety: pin projection OK, no movement from future...
             let poll = unsafe {
