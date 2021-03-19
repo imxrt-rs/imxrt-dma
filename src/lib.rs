@@ -51,6 +51,10 @@ pub use ral::tcd::BandwidthControl;
 pub type Result<T> = core::result::Result<T, Error>;
 
 /// Set a hardware peripheral as the source for a DMA transfer
+///
+/// `hardware_source` is expected to be a pointer to a peripheral register that
+/// can provide DMA data. This function configures the DMA channel always read from
+/// this register.
 pub fn set_source_hardware<E: Element>(chan: &mut Channel, hardware_source: *const E) {
     chan.set_source_address(hardware_source);
     chan.set_source_offset(0);
@@ -59,6 +63,10 @@ pub fn set_source_hardware<E: Element>(chan: &mut Channel, hardware_source: *con
 }
 
 /// Set a hardware peripheral as the destination for a DMA transfer
+///
+/// `hardware_destination` is expected to point at a peripheral register that can
+/// receive DMA data. This function configures the DMA channel to always write to
+/// this register.
 pub fn set_destination_hardware<E: Element>(chan: &mut Channel, hardware_destination: *const E) {
     chan.set_destination_address(hardware_destination);
     chan.set_destination_offset(0);
