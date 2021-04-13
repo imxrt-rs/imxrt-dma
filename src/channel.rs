@@ -35,7 +35,7 @@ impl Channel {
     ///
     /// # Panics
     ///
-    /// Panics if `index` is greater than 32.
+    /// Panics if `index` is greater than or equal to 32.
     #[inline(always)]
     pub unsafe fn new(index: usize) -> Self {
         // TODO consider breaking the API and return `Option<Channel>`

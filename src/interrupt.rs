@@ -42,7 +42,7 @@ use cortex_m::interrupt::{self, Mutex};
 ///
 /// # Panics
 ///
-/// Panics if `channel` is greater than 32.
+/// Panics if `channel` is greater than or equal to 32.
 #[inline(always)]
 pub unsafe fn on_interrupt(channel: usize) {
     let channel = Channel::new(channel);
@@ -64,8 +64,7 @@ pub unsafe fn on_interrupt(channel: usize) {
 /// Handle a DMA error on one or more channels
 ///
 /// `on_error` will find all DMA channels below `max_channel` that have
-/// an error. `on_error` then wakes the waker that channel's waker, if
-/// it exists.
+/// an error. `on_error` then wakes that channel's waker, if it exists.
 ///
 /// `max_channel` is the total number of channels, starting from channel 0,
 /// that you want to check for errors. This should be 32, or 16 on a system
@@ -135,7 +134,7 @@ static WAKERS: [SharedWaker; 32] = [NO_WAKER; 32];
 ///
 /// `Transfer` calls the unsafe [`enable`](crate::Channel::enable) method to enable a
 /// DMA transfer. To properly use `Transfer`, make sure that you've configured your DMA
-/// channel for a valid, safe transfer.
+/// channel for a valid transfer.
 ///
 /// `Transfer` is the core DMA future used in `imxrt_dma`. For safe DMA transfers, consider
 /// using
