@@ -156,6 +156,14 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Direct Memory Access (DMA) driver for i.MX RT processors</span>
 <span class="doccomment">//!</span>
@@ -210,6 +218,10 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Set a hardware peripheral as the source for a DMA transfer</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `hardware_source` is expected to be a pointer to a peripheral register that</span>
+<span class="doccomment">/// can provide DMA data. This function configures the DMA channel always read from</span>
+<span class="doccomment">/// this register.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_source_hardware</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="ident">chan</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>, <span class="ident">hardware_source</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">E</span>) {
     <span class="ident">chan</span>.<span class="ident">set_source_address</span>(<span class="ident">hardware_source</span>);
     <span class="ident">chan</span>.<span class="ident">set_source_offset</span>(<span class="number">0</span>);
@@ -218,6 +230,10 @@
 }
 
 <span class="doccomment">/// Set a hardware peripheral as the destination for a DMA transfer</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `hardware_destination` is expected to point at a peripheral register that can</span>
+<span class="doccomment">/// receive DMA data. This function configures the DMA channel to always write to</span>
+<span class="doccomment">/// this register.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_destination_hardware</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="ident">chan</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>, <span class="ident">hardware_destination</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">E</span>) {
     <span class="ident">chan</span>.<span class="ident">set_destination_address</span>(<span class="ident">hardware_destination</span>);
     <span class="ident">chan</span>.<span class="ident">set_destination_offset</span>(<span class="number">0</span>);
@@ -313,4 +329,5 @@
     <span class="ident">chan</span>.<span class="ident">set_destination_last_address_adjustment</span>(<span class="number">0</span>);
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "imxrt_dma";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

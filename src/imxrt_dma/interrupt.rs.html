@@ -220,7 +220,6 @@
 <span id="217">217</span>
 <span id="218">218</span>
 <span id="219">219</span>
-<span id="220">220</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! DMA interrupt support</span>
 
@@ -266,7 +265,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Panics</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Panics if `channel` is greater than 32.</span>
+<span class="doccomment">/// Panics if `channel` is greater than or equal to 32.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">on_interrupt</span>(<span class="ident">channel</span>: <span class="ident">usize</span>) {
     <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Channel</span>::<span class="ident">new</span>(<span class="ident">channel</span>);
@@ -288,8 +287,7 @@
 <span class="doccomment">/// Handle a DMA error on one or more channels</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `on_error` will find all DMA channels below `max_channel` that have</span>
-<span class="doccomment">/// an error. `on_error` then wakes the waker that channel&#39;s waker, if</span>
-<span class="doccomment">/// it exists.</span>
+<span class="doccomment">/// an error. `on_error` then wakes that channel&#39;s waker, if it exists.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `max_channel` is the total number of channels, starting from channel 0,</span>
 <span class="doccomment">/// that you want to check for errors. This should be 32, or 16 on a system</span>
@@ -359,7 +357,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// `Transfer` calls the unsafe [`enable`](crate::Channel::enable) method to enable a</span>
 <span class="doccomment">/// DMA transfer. To properly use `Transfer`, make sure that you&#39;ve configured your DMA</span>
-<span class="doccomment">/// channel for a valid, safe transfer.</span>
+<span class="doccomment">/// channel for a valid transfer.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `Transfer` is the core DMA future used in `imxrt_dma`. For safe DMA transfers, consider</span>
 <span class="doccomment">/// using</span>
@@ -443,4 +441,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "imxrt_dma";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

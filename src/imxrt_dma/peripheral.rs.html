@@ -345,17 +345,6 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! DMA support for hardware peripherals</span>
 
@@ -379,11 +368,6 @@
 <span class="doccomment">/// `Source` should only be implemented on peripherals that are</span>
 <span class="doccomment">/// DMA capable. This trait should be implemented by HAL authors</span>
 <span class="doccomment">/// who are exposing DMA capable peripherals.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `enable_source` and `disable_source` methods may have</span>
-<span class="doccomment">/// interior mutability. The implementer must ensure that any modifications</span>
-<span class="doccomment">/// are atomic. The `Source` consumer will assume that `enable_source` and</span>
-<span class="doccomment">/// `disable_source` are correct, and that they are safe to call.</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Peripheral source request signal</span>
     <span class="doccomment">///</span>
@@ -422,11 +406,6 @@
 <span class="doccomment">/// `Destination` should only be implemented on peripherals that are</span>
 <span class="doccomment">/// DMA capable. This trait should be implemented by HAL authors</span>
 <span class="doccomment">/// who are exposing DMA capable peripherals.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `enable_destination` and `disable_destination` methods may have</span>
-<span class="doccomment">/// interior mutability. The implementer must ensure that any modifications</span>
-<span class="doccomment">/// are atomic. The `Source` consumer will assume that `enable_destination` and</span>
-<span class="doccomment">/// `disable_destination` are correct, and that they are safe to call.</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">Destination</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Peripheral destination request signal</span>
     <span class="doccomment">///</span>
@@ -668,7 +647,6 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
-        <span class="comment">// Schedule the receive first...</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">rx_done</span> {
             <span class="comment">// Safety: pin projection OK, no movement from future...</span>
             <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -713,4 +691,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "imxrt_dma";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
