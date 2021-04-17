@@ -51,11 +51,11 @@ where
     pcs0: PCS0,
 }
 
-pub struct SPI {
+pub struct Spi {
     instance: ral::lpspi::Instance,
 }
 
-impl SPI {
+impl Spi {
     fn new<SDO, SDI, SCK, PCS0>(
         instance: ral::lpspi::Instance,
         pins: &mut Pins<SDO, SDI, SCK, PCS0>,
@@ -87,7 +87,7 @@ impl SPI {
         );
         ral::write_reg!(ral::lpspi, instance, CR, MEN: MEN_1);
 
-        SPI { instance }
+        Spi { instance }
     }
 
     fn set_frame_size<W>(&mut self) {
@@ -95,7 +95,7 @@ impl SPI {
     }
 }
 
-unsafe impl<E: Element> Source<E> for SPI {
+unsafe impl<E: Element> Source<E> for Spi {
     fn source_signal(&self) -> u32 {
         match &*self.instance as *const _ {
             ral::lpspi::LPSPI1 => 13,
@@ -120,7 +120,7 @@ unsafe impl<E: Element> Source<E> for SPI {
     }
 }
 
-unsafe impl<E: Element> Destination<E> for SPI {
+unsafe impl<E: Element> Destination<E> for Spi {
     fn destination_signal(&self) -> u32 {
         <Self as Source<E>>::source_signal(self) + 1
     }
@@ -139,7 +139,7 @@ unsafe impl<E: Element> Destination<E> for SPI {
     }
 }
 
-unsafe impl<E: Element> Bidirectional<E> for SPI {}
+unsafe impl<E: Element> Bidirectional<E> for Spi {}
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
@@ -168,7 +168,7 @@ fn main() -> ! {
         sck: pins.p13,
         pcs0: pins.p10,
     };
-    let mut spi = SPI::new(spi, &mut pins);
+    let mut spi = Spi::new(spi, &mut pins);
 
     let core_peripherals = cortex_m::Peripherals::take().unwrap();
     let mut systick = bsp::SysTick::new(core_peripherals.SYST);

@@ -41,11 +41,11 @@ const SOURCE_CLOCK_DIVIDER: u32 = 1;
 const TIMINGS: (u32, u32) = timings(SOURCE_CLOCK_HZ / SOURCE_CLOCK_DIVIDER, BAUD);
 
 /// The DMA UART adapter
-struct UART {
+struct Uart {
     instance: ral::lpuart::Instance,
 }
 
-impl UART {
+impl Uart {
     /// Creates a new UART peripheral that can perform DMA transfers
     ///
     /// Caller should make sure that the TX and RX pins match the LPUART instance.
@@ -64,7 +64,7 @@ impl UART {
         ral::modify_reg!(ral::lpuart, instance, BAUD, OSR: TIMINGS.0 - 1, SBR: TIMINGS.1, BOTHEDGE: 0);
         // Enable the peripheral
         ral::modify_reg!(ral::lpuart, instance, CTRL, TE: TE_1, RE: RE_1);
-        UART { instance }
+        Uart { instance }
     }
 
     /// Clear status flags
@@ -94,7 +94,7 @@ impl UART {
 }
 
 /// Safety: this UART peripheral can provide data for a DMA transfer
-unsafe impl Source<u8> for UART {
+unsafe impl Source<u8> for Uart {
     /// See the reference manual for number documentation
     fn source_signal(&self) -> u32 {
         match &*self.instance as *const _ {
@@ -128,7 +128,7 @@ unsafe impl Source<u8> for UART {
 }
 
 /// Safety: this UART peripheral can receive data from a DMA transfer
-unsafe impl Destination<u8> for UART {
+unsafe impl Destination<u8> for Uart {
     fn destination_signal(&self) -> u32 {
         self.source_signal() - 1
     }
@@ -165,7 +165,7 @@ fn main() -> ! {
     // Using LPUART2
     let uart = ral::lpuart::LPUART2::take().unwrap();
     set_clock_gate(&uart, &mut ccm, true);
-    let mut uart = UART::new(uart, &mut pins.p14, &mut pins.p15);
+    let mut uart = Uart::new(uart, &mut pins.p14, &mut pins.p15);
 
     let core_peripherals = cortex_m::Peripherals::take().unwrap();
     let mut systick = bsp::SysTick::new(core_peripherals.SYST);
