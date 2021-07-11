@@ -1,6 +1,9 @@
 //! DMA support for hardware peripherals
 
-use super::{Channel, ChannelConfiguration, Element, Error, Transfer};
+use super::{
+    channel::{self, Channel, Configuration},
+    Element, Error, Transfer,
+};
 
 use core::{
     future::Future,
@@ -126,9 +129,9 @@ where
     E: Element,
 {
     channel.set_disable_on_completion(true);
-    channel.set_channel_configuration(ChannelConfiguration::enable(source.source_signal()));
-    super::set_source_hardware(channel, source.source_address());
-    super::set_destination_linear_buffer(channel, buffer);
+    channel.set_channel_configuration(Configuration::enable(source.source_signal()));
+    channel::set_source_hardware(channel, source.source_address());
+    channel::set_destination_linear_buffer(channel, buffer);
     channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
     channel.set_transfer_iterations(buffer.len() as u16);
 
@@ -199,11 +202,9 @@ where
     E: Element,
 {
     channel.set_disable_on_completion(true);
-    channel.set_channel_configuration(ChannelConfiguration::enable(
-        destination.destination_signal(),
-    ));
-    super::set_source_linear_buffer(channel, buffer);
-    super::set_destination_hardware(channel, destination.destination_address());
+    channel.set_channel_configuration(Configuration::enable(destination.destination_signal()));
+    channel::set_source_linear_buffer(channel, buffer);
+    channel::set_destination_hardware(channel, destination.destination_address());
 
     channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
     channel.set_transfer_iterations(buffer.len() as u16);

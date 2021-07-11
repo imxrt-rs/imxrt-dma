@@ -1,6 +1,6 @@
 //! DMA interrupt support
 
-use crate::{Channel, Error};
+use crate::{channel::Channel, Error};
 use core::{
     cell::RefCell,
     future::Future,
@@ -132,7 +132,7 @@ static WAKERS: [SharedWaker; 32] = [NO_WAKER; 32];
 /// - registered a DMA ISR with your embedded runtime
 /// - unmasked the DMA interrupt in the NVIC
 ///
-/// `Transfer` calls the unsafe [`enable`](crate::Channel::enable) method to enable a
+/// `Transfer` calls the unsafe [`enable`](crate::channel::Channel::enable) method to enable a
 /// DMA transfer. To properly use `Transfer`, make sure that you've configured your DMA
 /// channel for a valid transfer.
 ///
@@ -147,7 +147,7 @@ static WAKERS: [SharedWaker; 32] = [NO_WAKER; 32];
 /// your own transfer future, you may do so.
 ///
 /// ```no_run
-/// use imxrt_dma::{Channel, Transfer};
+/// use imxrt_dma::{channel::Channel, Transfer};
 ///
 /// let my_channel: Channel = // Acquire your channel...
 ///     # unsafe { Channel::new(0) };

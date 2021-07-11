@@ -33,7 +33,7 @@
 
 #![no_std]
 
-mod channel;
+pub mod channel;
 mod element;
 mod error;
 mod interrupt;
@@ -41,7 +41,6 @@ pub mod memcpy;
 pub mod peripheral;
 mod ral;
 
-pub use channel::{Channel, ChannelConfiguration};
 pub use element::Element;
 pub use error::Error;
 pub use interrupt::{on_error, on_interrupt, Transfer};
@@ -49,118 +48,6 @@ pub use ral::tcd::BandwidthControl;
 
 /// A DMA result
 pub type Result<T> = core::result::Result<T, Error>;
-
-/// Set a hardware peripheral as the source for a DMA transfer
-///
-/// `hardware_source` is expected to be a pointer to a peripheral register that
-/// can provide DMA data. This function configures the DMA channel always read from
-/// this register.
-pub fn set_source_hardware<E: Element>(chan: &mut Channel, hardware_source: *const E) {
-    chan.set_source_address(hardware_source);
-    chan.set_source_offset(0);
-    chan.set_source_attributes::<E>(0);
-    chan.set_source_last_address_adjustment(0);
-}
-
-/// Set a hardware peripheral as the destination for a DMA transfer
-///
-/// `hardware_destination` is expected to point at a peripheral register that can
-/// receive DMA data. This function configures the DMA channel to always write to
-/// this register.
-pub fn set_destination_hardware<E: Element>(chan: &mut Channel, hardware_destination: *const E) {
-    chan.set_destination_address(hardware_destination);
-    chan.set_destination_offset(0);
-    chan.set_destination_attributes::<E>(0);
-    chan.set_destination_last_address_adjustment(0);
-}
-
-/// Set a linear buffer as the source for a DMA transfer
-///
-/// When the transfer completes, the DMA channel will point at the
-/// start of the buffer.
-pub fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
-    chan.set_source_address(source.as_ptr());
-    chan.set_source_offset(core::mem::size_of::<E>() as i16);
-    chan.set_source_attributes::<E>(0);
-    chan.set_source_last_address_adjustment(
-        ((source.len() * core::mem::size_of::<E>()) as i32).wrapping_neg(),
-    );
-}
-
-/// Set a linear buffer as the destination for a DMA transfer
-///
-/// When the transfer completes, the DMA channel will point at the
-/// start of the buffer.
-pub fn set_destination_linear_buffer<E: Element>(chan: &mut Channel, destination: &mut [E]) {
-    chan.set_destination_address(destination.as_ptr());
-    chan.set_destination_offset(core::mem::size_of::<E>() as i16);
-    chan.set_destination_attributes::<E>(0);
-    chan.set_destination_last_address_adjustment(
-        ((destination.len() * core::mem::size_of::<E>()) as i32).wrapping_neg(),
-    );
-}
-
-/// Assert properties about the circular buffer
-fn circular_buffer_asserts<E>(buffer: &[E]) {
-    let len = buffer.len();
-    assert!(
-        len.is_power_of_two(),
-        "DMA circular buffer size is not power of two"
-    );
-    let start = buffer.as_ptr();
-    let size = len * core::mem::size_of::<E>();
-    assert!(
-        (start as usize) % size == 0,
-        "DMA circular buffer is not properly aligned"
-    );
-}
-
-/// Compute the circular buffer modulo value
-fn circular_buffer_modulo<E>(buffer: &[E]) -> u32 {
-    31 - (buffer.len() * core::mem::size_of::<E>()).leading_zeros()
-}
-
-/// Set a circular buffer as the source for a DMA transfer
-///
-/// When the transfer completes, the DMA channel remain at the
-/// next element in the circular buffer.
-///
-/// # Panics
-///
-/// Panics if
-///
-/// - the capacity is not a power of two
-/// - the alignment is not a multiple of the buffer's size in bytes
-pub fn set_source_circular_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
-    circular_buffer_asserts(source);
-    let modulo = circular_buffer_modulo(source);
-
-    chan.set_source_address(source.as_ptr());
-    chan.set_source_offset(core::mem::size_of::<E>() as i16);
-    chan.set_source_attributes::<E>(modulo as u8);
-    chan.set_source_last_address_adjustment(0);
-}
-
-/// Set a circular buffer as the destination for a DMA transfer
-///
-/// When the transfer completes, the DMA channel remain at the
-/// next element in the circular buffer.
-///
-/// # Panics
-///
-/// Panics if
-///
-/// - the capacity is not a power of two
-/// - the alignment is not a multiple of the buffer's size in bytes
-pub fn set_destination_circular_buffer<E: Element>(chan: &mut Channel, destination: &mut [E]) {
-    circular_buffer_asserts(destination);
-    let modulo = circular_buffer_modulo(destination);
-
-    chan.set_destination_address(destination.as_ptr());
-    chan.set_destination_offset(core::mem::size_of::<E>() as i16);
-    chan.set_destination_attributes::<E>(modulo as u8);
-    chan.set_destination_last_address_adjustment(0);
-}
 
 use core::{future::Future, pin::Pin, task::Poll};
 

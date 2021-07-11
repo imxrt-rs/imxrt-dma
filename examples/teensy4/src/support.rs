@@ -10,7 +10,7 @@ use core::{
     pin::Pin,
     task::{Context, Poll, RawWaker, RawWakerVTable, Waker},
 };
-use imxrt_dma::Channel;
+use imxrt_dma::channel::Channel;
 use teensy4_bsp as bsp;
 
 #[panic_handler]

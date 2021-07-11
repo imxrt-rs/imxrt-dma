@@ -1,6 +1,10 @@
 //! DMA-powered memcpy
 
-use crate::{interrupt::Transfer, Channel, Element, Error};
+use crate::{
+    channel::{self, Channel},
+    interrupt::Transfer,
+    Element, Error,
+};
 
 use core::{
     future::Future,
@@ -29,7 +33,7 @@ pub struct Memcpy<'a> {
 /// the DMA channel 7 interrupt fires.
 ///
 /// ```no_run
-/// use imxrt_dma::{Channel, memcpy, on_interrupt};
+/// use imxrt_dma::{channel::Channel, memcpy, on_interrupt};
 ///
 /// // #[cortex_m_rt::interrupt]
 /// fn DMA7() {
@@ -55,8 +59,8 @@ pub fn memcpy<'a, E: Element>(
     channel: &'a mut Channel,
 ) -> Memcpy<'a> {
     channel.set_disable_on_completion(true);
-    super::set_source_linear_buffer(channel, source);
-    super::set_destination_linear_buffer(channel, destination);
+    channel::set_source_linear_buffer(channel, source);
+    channel::set_destination_linear_buffer(channel, destination);
 
     // Turn off any DMAMUX configuration.
     //
@@ -64,7 +68,7 @@ pub fn memcpy<'a, E: Element>(
     // explicit "start()" activation. This means we could express the transfer
     // as a series of major loops, each transferring sizeof(E) bytes in the minor
     // loop. TBD...
-    channel.set_channel_configuration(super::ChannelConfiguration::Off);
+    channel.set_channel_configuration(channel::Configuration::Off);
     // Transfer all elements in a single major loop
     channel.set_minor_loop_bytes(
         core::mem::size_of::<E>().saturating_mul(source.len().min(destination.len())) as u32,
