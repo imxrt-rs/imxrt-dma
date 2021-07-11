@@ -37,9 +37,15 @@ fn main() -> ! {
         let source = [value; 256];
         let mut destination = [0u32; 256];
 
-        let memcpy = imxrt_dma::memcpy::memcpy(&source, &mut destination, &mut channel);
-        let result = support::wfi(memcpy);
-        assert!(result.is_ok());
+        {
+            let memcpy = imxrt_dma::memcpy::memcpy(&source, &mut destination, &mut channel);
+            pin_utils::pin_mut!(memcpy);
+
+            let poll = imxrt_dma::poll_no_wake(memcpy.as_mut());
+            assert!(poll.is_pending());
+            let result = imxrt_dma::block(memcpy);
+            assert!(result.is_ok());
+        }
 
         for (idx, dst) in destination.iter().enumerate() {
             assert_eq!(*dst, value, "index {}", idx);

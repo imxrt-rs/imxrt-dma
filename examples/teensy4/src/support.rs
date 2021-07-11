@@ -40,30 +40,6 @@ pub fn pins(_: ral::iomuxc::Instance) -> bsp::t40::Pins {
     unsafe { bsp::t40::Pins::new() }
 }
 
-/// Block until the future resolves...
-pub fn block<F: Future>(mut fut: F) -> F::Output {
-    static VTABLE: RawWakerVTable = RawWakerVTable::new(
-        |_| RawWaker::new(core::ptr::null(), &VTABLE),
-        |_| {},
-        |_| {},
-        |_| {},
-    );
-
-    let raw_waker = RawWaker::new(core::ptr::null(), &VTABLE);
-    // Safety: RawWaker is inert.
-    let waker = unsafe { Waker::from_raw(raw_waker) };
-    let mut context = Context::from_waker(&waker);
-    // Safety: not unpinning the memory
-    let mut fut = unsafe { Pin::new_unchecked(&mut fut) };
-
-    loop {
-        match fut.as_mut().poll(&mut context) {
-            Poll::Pending => {}
-            Poll::Ready(result) => return result,
-        }
-    }
-}
-
 /// Blocks on a `WFI` until a waker is invoked
 ///
 /// `wfi` will ignore interrupts that are fired but are not

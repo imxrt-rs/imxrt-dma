@@ -38,6 +38,9 @@ features = ["release_max_level_info"]
 [dependencies.cortex-m]
 version = "0.7"
 
+[dependencies.pin-utils]
+version = "0.1"
+
 [lib]
 name = "support"
 path = "src/support.rs"
