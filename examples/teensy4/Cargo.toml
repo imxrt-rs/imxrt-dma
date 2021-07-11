@@ -26,8 +26,7 @@ version = "0.6.13"
 # implement our own panic handler that logs data and still
 # blinks the same way.
 [dependencies.teensy4-panic]
-git = "https://github.com/mciantyre/teensy4-rs.git"
-rev = "9e5b3a3"
+version = "0.2"
 default-features = false
 
 # Logging configuration, and logging within the
