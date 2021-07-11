@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/interrupt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interrupt.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/interrupt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>interrupt.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../imxrt_dma/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../imxrt_dma/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -223,17 +223,17 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! DMA interrupt support</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Channel</span>, <span class="ident">Error</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">channel::Channel</span>, <span class="ident">Error</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{
-    <span class="ident">cell</span>::<span class="ident">RefCell</span>,
-    <span class="ident">future</span>::<span class="ident">Future</span>,
-    <span class="ident">marker</span>::<span class="ident">PhantomPinned</span>,
-    <span class="ident">pin</span>::<span class="ident">Pin</span>,
-    <span class="ident">sync</span>::<span class="ident">atomic</span>,
+    <span class="ident">cell::RefCell</span>,
+    <span class="ident">future::Future</span>,
+    <span class="ident">marker::PhantomPinned</span>,
+    <span class="ident">pin::Pin</span>,
+    <span class="ident">sync::atomic</span>,
     <span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>, <span class="ident">Waker</span>},
 };
 
-<span class="kw">use</span> <span class="ident">cortex_m</span>::<span class="ident">interrupt</span>::{<span class="self">self</span>, <span class="ident">Mutex</span>};
+<span class="kw">use</span> <span class="ident">cortex_m::interrupt</span>::{<span class="self">self</span>, <span class="ident">Mutex</span>};
 
 <span class="doccomment">/// Handle a DMA interrupt</span>
 <span class="doccomment">///</span>
@@ -268,13 +268,13 @@
 <span class="doccomment">/// Panics if `channel` is greater than or equal to 32.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">on_interrupt</span>(<span class="ident">channel</span>: <span class="ident">usize</span>) {
-    <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Channel</span>::<span class="ident">new</span>(<span class="ident">channel</span>);
+    <span class="kw">let</span> <span class="ident">channel</span> <span class="op">=</span> <span class="ident">Channel::new</span>(<span class="ident">channel</span>);
     <span class="kw">if</span> <span class="ident">channel</span>.<span class="ident">is_interrupt</span>() {
         <span class="ident">channel</span>.<span class="ident">clear_interrupt</span>();
     }
 
     <span class="kw">if</span> <span class="ident">channel</span>.<span class="ident">is_complete</span>() <span class="op">|</span> <span class="ident">channel</span>.<span class="ident">is_error</span>() {
-        <span class="ident">interrupt</span>::<span class="ident">free</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> {
+        <span class="ident">interrupt::free</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">WAKERS</span>[<span class="ident">channel</span>.<span class="ident">channel</span>()].<span class="ident">borrow</span>(<span class="ident">cs</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">waker</span>.<span class="ident">borrow_mut</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <span class="ident">waker</span>.<span class="ident">take</span>() {
@@ -319,9 +319,9 @@
 <span class="doccomment">/// Panics if `max_channel` is greater than 32.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">on_error</span>(<span class="ident">max_channel</span>: <span class="ident">usize</span>) {
-    <span class="ident">interrupt</span>::<span class="ident">free</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> {
+    <span class="ident">interrupt::free</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> {
         (<span class="number">0</span>..<span class="ident">max_channel</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">chan</span><span class="op">|</span> <span class="ident">Channel</span>::<span class="ident">new</span>(<span class="ident">chan</span>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">chan</span><span class="op">|</span> <span class="ident">Channel::new</span>(<span class="ident">chan</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">chan</span><span class="op">|</span> <span class="ident">chan</span>.<span class="ident">is_error</span>())
             .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">channel</span><span class="op">|</span> {
                 <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">WAKERS</span>[<span class="ident">channel</span>.<span class="ident">channel</span>()].<span class="ident">borrow</span>(<span class="ident">cs</span>);
@@ -335,8 +335,8 @@
 }
 
 <span class="kw">type</span> <span class="ident">SharedWaker</span> <span class="op">=</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">declare_interior_mutable_const</span>)]</span> <span class="comment">// Very convenient, and usage for static init deemed OK in clippy docs</span>
-<span class="kw">const</span> <span class="ident">NO_WAKER</span>: <span class="ident">SharedWaker</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>));
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::declare_interior_mutable_const</span>)]</span> <span class="comment">// Very convenient, and usage for static init deemed OK in clippy docs</span>
+<span class="kw">const</span> <span class="ident">NO_WAKER</span>: <span class="ident">SharedWaker</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<span class="ident">RefCell::new</span>(<span class="prelude-val">None</span>));
 <span class="kw">static</span> <span class="ident">WAKERS</span>: [<span class="ident">SharedWaker</span>; <span class="number">32</span>] <span class="op">=</span> [<span class="ident">NO_WAKER</span>; <span class="number">32</span>];
 
 <span class="doccomment">/// The core DMA transfer future</span>
@@ -355,7 +355,7 @@
 <span class="doccomment">/// - registered a DMA ISR with your embedded runtime</span>
 <span class="doccomment">/// - unmasked the DMA interrupt in the NVIC</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `Transfer` calls the unsafe [`enable`](crate::Channel::enable) method to enable a</span>
+<span class="doccomment">/// `Transfer` calls the unsafe [`enable`](crate::channel::Channel::enable) method to enable a</span>
 <span class="doccomment">/// DMA transfer. To properly use `Transfer`, make sure that you&#39;ve configured your DMA</span>
 <span class="doccomment">/// channel for a valid transfer.</span>
 <span class="doccomment">///</span>
@@ -370,7 +370,7 @@
 <span class="doccomment">/// your own transfer future, you may do so.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use imxrt_dma::{Channel, Transfer};</span>
+<span class="doccomment">/// use imxrt_dma::{channel::Channel, Transfer};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let my_channel: Channel = // Acquire your channel...</span>
 <span class="doccomment">///     # unsafe { Channel::new(0) };</span>
@@ -403,8 +403,8 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Transfer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
-        <span class="ident">interrupt</span>::<span class="ident">free</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
+        <span class="ident">interrupt::free</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">WAKERS</span>[<span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">channel</span>()].<span class="ident">borrow</span>(<span class="ident">cs</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">waker</span>.<span class="ident">borrow_mut</span>();
             <span class="kw-2">*</span><span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cx</span>.<span class="ident">waker</span>().<span class="ident">clone</span>());
@@ -414,14 +414,14 @@
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">is_error</span>() {
                 <span class="kw">let</span> <span class="ident">es</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">error_status</span>();
                 <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">clear_error</span>();
-                <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">es</span>));
+                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">es</span>));
             } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">is_complete</span>() {
                 <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">clear_complete</span>();
-                <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
+                <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
             } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">is_enabled</span>() {
-                <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>;
+                <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
             } <span class="kw">else</span> {
-                <span class="ident">atomic</span>::<span class="ident">fence</span>(<span class="ident">atomic</span>::<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
+                <span class="ident">atomic::fence</span>(<span class="ident">atomic::Ordering::SeqCst</span>);
                 <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">enable</span>() };
             }
         }
@@ -433,7 +433,7 @@
         <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">disable</span>();
         <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">clear_complete</span>();
         <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">clear_error</span>();
-        <span class="ident">interrupt</span>::<span class="ident">free</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> {
+        <span class="ident">interrupt::free</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">WAKERS</span>[<span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">channel</span>()].<span class="ident">borrow</span>(<span class="ident">cs</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">waker</span>.<span class="ident">borrow_mut</span>();
             <span class="kw-2">*</span><span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -441,5 +441,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
