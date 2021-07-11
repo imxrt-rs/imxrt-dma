@@ -58,9 +58,16 @@ pub fn memcpy<'a, E: Element>(
     destination: &'a mut [E],
     channel: &'a mut Channel,
 ) -> Memcpy<'a> {
+    channel.disable();
+
     channel.set_disable_on_completion(true);
-    channel::set_source_linear_buffer(channel, source);
-    channel::set_destination_linear_buffer(channel, destination);
+
+    // Safety: buffers borrowed by `memcpy`, and will be valid
+    // while a transfer is in progress.
+    unsafe {
+        channel::set_source_linear_buffer(channel, source);
+        channel::set_destination_linear_buffer(channel, destination);
+    }
 
     // Turn off any DMAMUX configuration.
     //
@@ -69,11 +76,17 @@ pub fn memcpy<'a, E: Element>(
     // as a series of major loops, each transferring sizeof(E) bytes in the minor
     // loop. TBD...
     channel.set_channel_configuration(channel::Configuration::Off);
+
     // Transfer all elements in a single major loop
-    channel.set_minor_loop_bytes(
-        core::mem::size_of::<E>().saturating_mul(source.len().min(destination.len())) as u32,
-    );
-    channel.set_transfer_iterations(1);
+    //
+    // Safety: transferring the minimum number of bytes between buffers,
+    // and there's only one major loop to perform the transfer.
+    unsafe {
+        channel.set_minor_loop_bytes(
+            core::mem::size_of::<E>().saturating_mul(source.len().min(destination.len())) as u32,
+        );
+        channel.set_transfer_iterations(1);
+    }
 
     Memcpy {
         // Safety: transfer is properly prepared

@@ -2,6 +2,10 @@
 //!
 //! `channel` contains the DMA [`Channel`] type, along with helper functions for
 //! defining transfers.
+//!
+//! `Channel` methods that specify memory involved in transfers are marked `unsafe`. You must
+//! be very careful when calling these methods, particuarly when a channel is already
+//! enabled.
 
 use crate::{
     element::Element,
@@ -105,7 +109,14 @@ impl Channel {
     ///
     /// `saddr` should be a memory location that can provide the DMA controller
     /// with data.
-    pub fn set_source_address<E: Element>(&self, saddr: *const E) {
+    ///
+    /// # Safety
+    ///
+    /// If the DMA channel is already enabled, the DMA engine may start reading this
+    /// memory location. You must ensure that reads to `saddr` do not perform
+    /// inappropriate side effects. You must ensure `saddr` is valid for the
+    /// lifetime of the transfer.
+    pub unsafe fn set_source_address<E: Element>(&self, saddr: *const E) {
         // Immutable write OK. 32-bit aligned store on SADDR.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, SADDR, saddr as u32);
@@ -113,8 +124,13 @@ impl Channel {
 
     /// Set the source offset *in bytes*
     ///
-    ///`offset` could be negative, which would decrement the address.
-    pub fn set_source_offset(&self, offset: i16) {
+    /// `offset` could be negative, which would decrement the address.
+    ///
+    /// # Safety
+    ///
+    /// This method could allow a DMA engine to read beyond a buffer or
+    /// address. You must ensure that the source is valid for these offsets.
+    pub unsafe fn set_source_offset(&self, offset: i16) {
         // Immutable write OK. 16-bit aligned store on SOFF.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, SOFF, offset);
@@ -124,7 +140,14 @@ impl Channel {
     ///
     /// `daddr` should be a memory location that can store data from the
     /// DMA controller.
-    pub fn set_destination_address<E: Element>(&self, daddr: *const E) {
+    ///
+    /// # Safety
+    ///
+    /// If the DMA channel is already enabled, the DMA engine may start
+    /// writing to this address. You must ensure that writes to `daddr`
+    /// are safe, and that the memory is valid for the lifetime of the
+    /// transfer.
+    pub unsafe fn set_destination_address<E: Element>(&self, daddr: *const E) {
         // Immutable write OK. 32-bit aligned store on DADDR.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, DADDR, daddr as u32);
@@ -133,14 +156,26 @@ impl Channel {
     /// Set the destination offset *in bytes*
     ///
     /// `offset` could be negative, which would decrement the address.
-    pub fn set_destination_offset(&self, offset: i16) {
+    ///
+    /// # Safety
+    ///
+    /// This method could allow a DMA engine to write beyond the range of
+    /// a buffer. You must ensure that the destination is valid for these
+    /// offsets.
+    pub unsafe fn set_destination_offset(&self, offset: i16) {
         // Immutable write OK. 16-bit aligned store on DOFF.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, DOFF, offset);
     }
 
     /// Set the transfer attributes for the source
-    pub fn set_source_attributes<E: Element>(&self, modulo: u8) {
+    ///
+    /// # Safety
+    ///
+    /// An incorrect `modulo` value may allow the DMA engine to loop back
+    /// to an incorrect address. You must ensure that `modulo` is valid
+    /// for your source.
+    pub unsafe fn set_source_attributes<E: Element>(&self, modulo: u8) {
         let tcd = self.tcd();
         ral::write_reg!(
             crate::ral::tcd,
@@ -152,19 +187,39 @@ impl Channel {
     }
 
     /// Set the source last address adjustment *in bytes*
-    pub fn set_source_last_address_adjustment(&self, adjustment: i32) {
+    ///
+    /// # Safety
+    ///
+    /// This could allow the DMA engine to reference an invalid source buffer.
+    /// You must ensure that the adjustment performed by the DMA engine is
+    /// valid, assuming that another DMA transfer immediately runs after the
+    /// current transfer completes.
+    pub unsafe fn set_source_last_address_adjustment(&self, adjustment: i32) {
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, SLAST, adjustment);
     }
 
     /// Set the destination last addrss adjustment *in bytes*
-    pub fn set_destination_last_address_adjustment(&self, adjustment: i32) {
+    ///
+    /// # Safety
+    ///
+    /// This could allow the DMA engine to reference an invalid destination address.
+    /// You must ensure that the adjustment performed by the DMA engine is
+    /// valid, assuming that another DMA transfer immediately runs after the
+    /// current transfer completes.
+    pub unsafe fn set_destination_last_address_adjustment(&self, adjustment: i32) {
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, DLAST_SGA, adjustment);
     }
 
     /// Set the transfer attributes for the destination
-    pub fn set_destination_attributes<E: Element>(&self, modulo: u8) {
+    ///
+    /// # Safety
+    ///
+    /// An incorrect `modulo` value may allow the DMA engine to loop back
+    /// to an incorrect address. You must ensure that `modulo` is valid
+    /// for your destination.
+    pub unsafe fn set_destination_attributes<E: Element>(&self, modulo: u8) {
         let tcd = self.tcd();
         ral::write_reg!(
             crate::ral::tcd,
@@ -179,7 +234,13 @@ impl Channel {
     ///
     /// Describes how many bytes we should transfer for each DMA service request.
     /// Note that `nbytes` of `0` is interpreted as a 4GB transfer.
-    pub fn set_minor_loop_bytes(&self, nbytes: u32) {
+    ///
+    /// # Safety
+    ///
+    /// This might allow the DMA engine to read beyond the source, or write beyond
+    /// the destination. Caller must ensure that the number of bytes per minor loop
+    /// is valid for the given transfer.
+    pub unsafe fn set_minor_loop_bytes(&self, nbytes: u32) {
         // Immutable write OK. 32-bit store on NBYTES.
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, NBYTES, nbytes);
@@ -190,7 +251,13 @@ impl Channel {
     /// A 'transfer iteration' is a read from a source, and a write to a destination, with
     /// read and write sizes described by a minor loop. Each iteration requires a DMA
     /// service request, either from hardware or from software.
-    pub fn set_transfer_iterations(&mut self, iterations: u16) {
+    ///
+    /// # Safety
+    ///
+    /// This may allow the DMA engine to read beyond the source, or write beyond
+    /// the destination. Caller must ensure that the number of iterations is valid
+    /// for the transfer.
+    pub unsafe fn set_transfer_iterations(&mut self, iterations: u16) {
         let tcd = self.tcd();
         ral::write_reg!(crate::ral::tcd, tcd, CITER, iterations);
         ral::write_reg!(crate::ral::tcd, tcd, BITER, iterations);
@@ -206,7 +273,7 @@ impl Channel {
     /// Only the first four DMA channels support periodic triggering from PIT timers. This method
     /// panics if `triggering` is set for the [`Enable`](crate::channel::Configuration)
     /// variant, but the channel does not support triggering.
-    pub fn set_channel_configuration(&self, configuration: Configuration) {
+    pub fn set_channel_configuration(&mut self, configuration: Configuration) {
         // Immutable write OK. 32-bit store on configuration register.
         let chcfg = &self.multiplexer.chcfg[self.index];
         match configuration {
@@ -383,7 +450,12 @@ impl Configuration {
 /// `hardware_source` is expected to be a pointer to a peripheral register that
 /// can provide DMA data. This function configures the DMA channel always read from
 /// this register.
-pub fn set_source_hardware<E: Element>(chan: &mut Channel, hardware_source: *const E) {
+///
+/// # Safety
+///
+/// Caller must ensure that `hardware_source` is valid for the lifetime of the transfer,
+/// and valid for all subsequent transfers performed by this DMA channel with this address.
+pub unsafe fn set_source_hardware<E: Element>(chan: &mut Channel, hardware_source: *const E) {
     chan.set_source_address(hardware_source);
     chan.set_source_offset(0);
     chan.set_source_attributes::<E>(0);
@@ -395,7 +467,15 @@ pub fn set_source_hardware<E: Element>(chan: &mut Channel, hardware_source: *con
 /// `hardware_destination` is expected to point at a peripheral register that can
 /// receive DMA data. This function configures the DMA channel to always write to
 /// this register.
-pub fn set_destination_hardware<E: Element>(chan: &mut Channel, hardware_destination: *const E) {
+///
+/// # Safety
+///
+/// Caller must ensure that `hardware_destination` is valid for the lifetime of the transfer,
+/// and valid for all subsequent transfers performed by this DMA channel with this address.
+pub unsafe fn set_destination_hardware<E: Element>(
+    chan: &mut Channel,
+    hardware_destination: *const E,
+) {
     chan.set_destination_address(hardware_destination);
     chan.set_destination_offset(0);
     chan.set_destination_attributes::<E>(0);
@@ -406,7 +486,12 @@ pub fn set_destination_hardware<E: Element>(chan: &mut Channel, hardware_destina
 ///
 /// When the transfer completes, the DMA channel will point at the
 /// start of the buffer.
-pub fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
+///
+/// # Safety
+///
+/// Caller must ensure that the source is valid for the lifetime of the transfer,
+/// and valid for all subsequent transfers performed by this DMA channel with this buffer.
+pub unsafe fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
     chan.set_source_address(source.as_ptr());
     chan.set_source_offset(core::mem::size_of::<E>() as i16);
     chan.set_source_attributes::<E>(0);
@@ -419,7 +504,12 @@ pub fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
 ///
 /// When the transfer completes, the DMA channel will point at the
 /// start of the buffer.
-pub fn set_destination_linear_buffer<E: Element>(chan: &mut Channel, destination: &mut [E]) {
+///
+/// # Safety
+///
+/// Caller must ensure that the destination is valid for the lifetime of the transfer,
+/// and valid for all subsequent transfers performed by this DMA channel with this buffer.
+pub unsafe fn set_destination_linear_buffer<E: Element>(chan: &mut Channel, destination: &mut [E]) {
     chan.set_destination_address(destination.as_ptr());
     chan.set_destination_offset(core::mem::size_of::<E>() as i16);
     chan.set_destination_attributes::<E>(0);
@@ -453,13 +543,18 @@ fn circular_buffer_modulo<E>(buffer: &[E]) -> u32 {
 /// When the transfer completes, the DMA channel remain at the
 /// next element in the circular buffer.
 ///
+/// # Safety
+///
+/// Caller must ensure that the source is valid for the lifetime of the transfer,
+/// and for all subsequent transfers performed by this DMA channel with this buffer.
+///
 /// # Panics
 ///
 /// Panics if
 ///
 /// - the capacity is not a power of two
 /// - the alignment is not a multiple of the buffer's size in bytes
-pub fn set_source_circular_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
+pub unsafe fn set_source_circular_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
     circular_buffer_asserts(source);
     let modulo = circular_buffer_modulo(source);
 
@@ -474,13 +569,21 @@ pub fn set_source_circular_buffer<E: Element>(chan: &mut Channel, source: &[E]) 
 /// When the transfer completes, the DMA channel remain at the
 /// next element in the circular buffer.
 ///
+/// # Safety
+///
+/// Caller must ensure that the destination is valid for the lifetime of the transfer,
+/// and for all subsequent transfers performed by this DMA channel with this buffer.
+///
 /// # Panics
 ///
 /// Panics if
 ///
 /// - the capacity is not a power of two
 /// - the alignment is not a multiple of the buffer's size in bytes
-pub fn set_destination_circular_buffer<E: Element>(chan: &mut Channel, destination: &mut [E]) {
+pub unsafe fn set_destination_circular_buffer<E: Element>(
+    chan: &mut Channel,
+    destination: &mut [E],
+) {
     circular_buffer_asserts(destination);
     let modulo = circular_buffer_modulo(destination);
 

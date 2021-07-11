@@ -128,12 +128,20 @@ where
     S: Source<E>,
     E: Element,
 {
+    channel.disable();
+
     channel.set_disable_on_completion(true);
     channel.set_channel_configuration(Configuration::enable(source.source_signal()));
-    channel::set_source_hardware(channel, source.source_address());
-    channel::set_destination_linear_buffer(channel, buffer);
-    channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
-    channel.set_transfer_iterations(buffer.len() as u16);
+    // Safety: hardware source address must be valid, otherwise impl is unsound.
+    // Destination buffer lifetime captured by future. The combination of minor
+    // loops and transfer iterations ensure that we do not exceed the end of the
+    // destination.
+    unsafe {
+        channel::set_source_hardware(channel, source.source_address());
+        channel::set_destination_linear_buffer(channel, buffer);
+        channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
+        channel.set_transfer_iterations(buffer.len() as u16);
+    }
 
     source.enable_source();
 }
@@ -201,13 +209,19 @@ where
     D: Destination<E>,
     E: Element,
 {
+    channel.disable();
     channel.set_disable_on_completion(true);
     channel.set_channel_configuration(Configuration::enable(destination.destination_signal()));
-    channel::set_source_linear_buffer(channel, buffer);
-    channel::set_destination_hardware(channel, destination.destination_address());
-
-    channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
-    channel.set_transfer_iterations(buffer.len() as u16);
+    // Safety: hardware address must be valid, otherwise impl is unsound.
+    // Source buffer lifetime captured by future. The combination of minor
+    // loops and transfer iterations ensure that we do not exceed the end of the
+    // source.
+    unsafe {
+        channel::set_source_linear_buffer(channel, buffer);
+        channel::set_destination_hardware(channel, destination.destination_address());
+        channel.set_minor_loop_bytes(core::mem::size_of::<E>() as u32);
+        channel.set_transfer_iterations(buffer.len() as u16);
+    }
 
     destination.enable_destination();
 }
