@@ -267,6 +267,14 @@ impl Channel {
         ral::modify_reg!(crate::ral::tcd, tcd, BITER, BITER: iterations);
     }
 
+    /// Returns the beginning transfer iterations setting for the channel.
+    ///
+    /// This reflects the last call to `set_transfer_iterations`.
+    pub fn beginning_transfer_iterations(&self) -> u16 {
+        let tcd = self.tcd();
+        ral::read_reg!(crate::ral::tcd, tcd, BITER, BITER)
+    }
+
     /// Set the DMAMUX channel configuration
     ///
     /// See the [`Configuration`](crate::channel::Configuration) documentation
