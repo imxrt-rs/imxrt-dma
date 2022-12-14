@@ -41,9 +41,9 @@ fn main() -> ! {
             let memcpy = imxrt_dma::memcpy::memcpy(&source, &mut destination, &mut channel);
             pin_utils::pin_mut!(memcpy);
 
-            let poll = imxrt_dma::poll_no_wake(memcpy.as_mut());
+            let poll = support::poll_no_wake(memcpy.as_mut());
             assert!(poll.is_pending());
-            let result = imxrt_dma::block(memcpy);
+            let result = support::block(memcpy);
             assert!(result.is_ok());
         }
 
