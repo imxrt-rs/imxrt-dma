@@ -25,7 +25,7 @@ pub struct Memcpy<'a, E> {
 /// Perform a DMA-powered `memcpy` between the `source` and `destination` buffers
 ///
 /// Copies the minimum number of elements between the two buffers. You're responsible
-/// for enabling any interrupts, and calling [`on_interrupt`](crate::interrupt::on_interrupt)
+/// for enabling any interrupts, and calling [`on_interrupt`](crate::Dma::on_interrupt)
 /// if the interrupt fires. Otherwise, you may poll the transfer until completion.
 ///
 /// # Example
@@ -34,16 +34,17 @@ pub struct Memcpy<'a, E> {
 /// the DMA channel 7 interrupt fires.
 ///
 /// ```no_run
-/// use imxrt_dma::{channel::Channel, memcpy, on_interrupt};
+/// use imxrt_dma::{channel::Channel, memcpy};
 ///
+/// static DMA: imxrt_dma::Dma<32> = unsafe { imxrt_dma::Dma::new(core::ptr::null(), core::ptr::null()) };
 /// // #[cortex_m_rt::interrupt]
 /// fn DMA7() {
 ///     // Safety: DMA channel 7 valid
-///     unsafe { on_interrupt(7) };
+///     unsafe { DMA.on_interrupt(7) };
 /// }
 ///
 /// let mut channel_7: Channel = // DMA channel 7
-///     # unsafe { Channel::new(7) };
+///     # unsafe { DMA.channel(7) };
 /// channel_7.set_interrupt_on_completion(true);
 /// // TODO unmask DMA7 interrupt!
 ///

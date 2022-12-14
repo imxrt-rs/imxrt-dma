@@ -43,8 +43,54 @@ mod ral;
 
 pub use element::Element;
 pub use error::Error;
-pub use interrupt::{on_error, on_interrupt, Transfer};
+pub use interrupt::Transfer;
 pub use ral::tcd::BandwidthControl;
 
 /// A DMA result
 pub type Result<T> = core::result::Result<T, Error>;
+
+/// A DMA peripheral.
+///
+/// This DMA driver manages the DMA controller and the multiplexer.
+/// It's configured with pointers to both peripherals.
+///
+/// `Dma` allocates [`Channel`](channel::Channel)s. `Channel` provides
+/// the interface for scheduling transfers.
+pub struct Dma<const CHANNELS: usize> {
+    controller: ral::Static<ral::dma::RegisterBlock>,
+    multiplexer: ral::Static<ral::dmamux::RegisterBlock>,
+    wakers: [SharedWaker; CHANNELS],
+}
+
+// Safety: OK to allocate a DMA driver in a static context.
+unsafe impl<const CHANNELS: usize> Sync for Dma<CHANNELS> {}
+
+impl<const CHANNELS: usize> Dma<CHANNELS> {
+    /// Create the DMA driver.
+    ///
+    /// Note that this can evaluate at compile time. Consider using this to expose
+    /// a `DMA` constant through your higher-level API that you can use to allocate
+    /// DMA channels.
+    ///
+    /// `max_channels` specifies the total number of channels supported by the DMA
+    /// controller. It's referenced when allocating channels.
+    ///
+    /// # Safety
+    ///
+    /// Caller must make sure that `controller` is a pointer to the start of the DMA
+    /// controller register block. Caller must also make sure that `multiplexer` is
+    /// a pointer to the start of the DMA multiplexer. Both pointers must be valid
+    /// for your MCU.
+    ///
+    /// An incorrect `max_channels` value prevents proper bounds checking when allocating
+    /// channels. This may result in DMA channels that point to invalid memory.
+    pub const unsafe fn new(controller: *const (), multiplexer: *const ()) -> Self {
+        Self {
+            controller: ral::Static(controller.cast()),
+            multiplexer: ral::Static(multiplexer.cast()),
+            wakers: [NO_WAKER; CHANNELS],
+        }
+    }
+}
+
+use interrupt::{SharedWaker, NO_WAKER};

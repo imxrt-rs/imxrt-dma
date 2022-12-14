@@ -9,14 +9,37 @@
 
 use crate::{
     element::Element,
-    ral::{self, dma, dmamux, tcd::BandwidthControl, Static, DMA, MULTIPLEXER},
+    ral::{self, dma, dmamux, tcd::BandwidthControl, Static},
     Error,
 };
+
+impl<const CHANNELS: usize> super::Dma<CHANNELS> {
+    /// Creates the DMA channel described by `index`.
+    ///
+    /// # Safety
+    ///
+    /// This will create a handle that may alias global, mutable state. You should only create
+    /// one channel per index. If there are multiple channels for the same index, you're
+    /// responsible for ensuring synchronized access.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is greater than or equal to the maximum number of channels.
+    pub unsafe fn channel(&'static self, index: usize) -> Channel {
+        assert!(index < CHANNELS);
+        Channel {
+            index,
+            registers: self.controller,
+            multiplexer: self.multiplexer,
+            waker: &self.wakers[index],
+        }
+    }
+}
 
 /// A DMA channel
 ///
 /// You should rely on your HAL to allocate `Channel`s. If your HAL does not allocate channels,
-/// or if you're desigining the HAL, use [`new`](#method.new) to create a new DMA channel.
+/// or if you're desigining the HAL, use [`Dma`](crate::Dma) to create channels.
 ///
 /// The `Channel` stores memory addresses independent of the memory lifetime. You must make
 /// sure that the channel's state is valid before enabling a transfer!
@@ -27,36 +50,11 @@ pub struct Channel {
     registers: Static<dma::RegisterBlock>,
     /// Reference to the DMA multiplexer
     multiplexer: Static<dmamux::RegisterBlock>,
+    /// This channel's waker.
+    pub(crate) waker: &'static super::SharedWaker,
 }
 
 impl Channel {
-    /// Creates the DMA channel described by `index`
-    ///
-    /// # Safety
-    ///
-    /// This will create a handle that may alias global, mutable state.
-    ///
-    /// You must make sure that `index` describes a valid DMA channel for your system.
-    /// If you're using this driver on a i.MX RT 1010 processor, you must make sure
-    /// that `index` is less than 16.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `index` is greater than or equal to 32.
-    #[inline(always)]
-    pub unsafe fn new(index: usize) -> Self {
-        // TODO consider breaking the API and return `Option<Channel>`
-        if index < 32 {
-            Channel {
-                index,
-                registers: DMA,
-                multiplexer: MULTIPLEXER,
-            }
-        } else {
-            panic!("DMA channel index {} exceeds 32", index);
-        }
-    }
-
     /// Enable the DMA channel for transfers
     ///
     /// # Safety

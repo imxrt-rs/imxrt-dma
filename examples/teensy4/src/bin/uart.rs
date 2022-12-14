@@ -206,7 +206,7 @@ fn main() -> ! {
 #[cortex_m_rt::interrupt]
 fn DMA7_DMA23() {
     // Safety: channel 7 is a valid channel.
-    unsafe { imxrt_dma::on_interrupt(7) };
+    unsafe { support::DMA.on_interrupt(7) };
 }
 
 /// Computes the `(OSR, SBR)` timing values at compile time

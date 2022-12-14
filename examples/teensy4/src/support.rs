@@ -19,6 +19,10 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     teensy4_panic::sos()
 }
 
+// Safety: imxrt-ral has correct addresses for DMA and DMAMUX peripherals.
+pub static DMA: imxrt_dma::Dma<32> =
+    unsafe { imxrt_dma::Dma::new(ral::dma0::DMA0.cast(), ral::dmamux::DMAMUX.cast()) };
+
 /// Allocate all DMA channels
 pub fn channels(_: ral::dma0::Instance, _: ral::dmamux::Instance) -> [Option<Channel>; 32] {
     const NO_CHANNEL: Option<Channel> = None;
@@ -27,7 +31,7 @@ pub fn channels(_: ral::dma0::Instance, _: ral::dmamux::Instance) -> [Option<Cha
     for (idx, channel) in channels.iter_mut().enumerate() {
         // Safety: own the DMA instances, so we're OK to fabricate the channels.
         // It would be unsafe for the user to subsequently access the DMA instances.
-        let mut chan = unsafe { Channel::new(idx) };
+        let mut chan = unsafe { DMA.channel(idx) };
         chan.reset();
         *channel = Some(chan);
     }
