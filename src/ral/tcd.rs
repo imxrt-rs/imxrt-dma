@@ -1,6 +1,6 @@
 //! Transfer Control Descriptor
 
-#![allow(non_snake_case, non_upper_case_globals)]
+#![allow(non_snake_case, non_upper_case_globals, clippy::module_inception)]
 
 use super::RWRegister;
 
@@ -162,6 +162,28 @@ pub mod CSR {
         /// Write-only values (empty)
         pub mod W {}
         /// Read-write values (empty)
+        pub mod RW {}
+    }
+}
+
+pub mod CITER {
+    /// Current Major Iteration Count
+    pub mod CITER {
+        pub const offset: u16 = 0;
+        pub const mask: u16 = 0x7fff << offset;
+        pub mod R {}
+        pub mod W {}
+        pub mod RW {}
+    }
+}
+
+pub mod BITER {
+    /// Starting Major Iteration Count
+    pub mod BITER {
+        pub const offset: u16 = 0;
+        pub const mask: u16 = 0x7fff << offset;
+        pub mod R {}
+        pub mod W {}
         pub mod RW {}
     }
 }

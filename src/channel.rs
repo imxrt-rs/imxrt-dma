@@ -250,7 +250,8 @@ impl Channel {
     ///
     /// A 'transfer iteration' is a read from a source, and a write to a destination, with
     /// read and write sizes described by a minor loop. Each iteration requires a DMA
-    /// service request, either from hardware or from software.
+    /// service request, either from hardware or from software. The maximum number of iterations
+    /// is 2^15.
     ///
     /// # Safety
     ///
@@ -259,8 +260,11 @@ impl Channel {
     /// for the transfer.
     pub unsafe fn set_transfer_iterations(&mut self, iterations: u16) {
         let tcd = self.tcd();
-        ral::write_reg!(crate::ral::tcd, tcd, CITER, iterations);
-        ral::write_reg!(crate::ral::tcd, tcd, BITER, iterations);
+        // Note that this is clearing the ELINK bit. We don't have support
+        // for channel-to-channel linking right now. Clearing ELINK is intentional
+        // to use the whole 15 bits for iterations.
+        ral::modify_reg!(crate::ral::tcd, tcd, CITER, CITER: iterations);
+        ral::modify_reg!(crate::ral::tcd, tcd, BITER, BITER: iterations);
     }
 
     /// Set the DMAMUX channel configuration
