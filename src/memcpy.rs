@@ -16,9 +16,10 @@ use core::{
 ///
 /// `Memcpy` yields when it's moved the minimum amount of elements between two linear
 /// buffers. Use the [`memcpy`](crate::memcpy::memcpy) function to define the transfer.
-pub struct Memcpy<'a> {
+pub struct Memcpy<'a, E> {
     transfer: Transfer<'a>,
     channel: &'a Channel,
+    _elem: core::marker::PhantomData<(&'a E, &'a mut E)>,
 }
 
 /// Perform a DMA-powered `memcpy` between the `source` and `destination` buffers
@@ -57,7 +58,7 @@ pub fn memcpy<'a, E: Element>(
     source: &'a [E],
     destination: &'a mut [E],
     channel: &'a mut Channel,
-) -> Memcpy<'a> {
+) -> Memcpy<'a, E> {
     channel.disable();
 
     channel.set_disable_on_completion(true);
@@ -92,10 +93,11 @@ pub fn memcpy<'a, E: Element>(
         // Safety: transfer is properly prepared
         transfer: unsafe { Transfer::new(channel) },
         channel,
+        _elem: core::marker::PhantomData,
     }
 }
 
-impl<'a> Future for Memcpy<'a> {
+impl<E> Future for Memcpy<'_, E> {
     type Output = Result<(), Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {

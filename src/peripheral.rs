@@ -96,7 +96,7 @@ where
     channel: &'a Channel,
     source: &'a mut S,
     transfer: Transfer<'a>,
-    _elem: PhantomData<E>,
+    _elem: PhantomData<&'a mut E>,
 }
 
 impl<S, E> Future for Rx<'_, S, E>
@@ -177,7 +177,7 @@ where
     channel: &'a Channel,
     destination: &'a mut D,
     transfer: Transfer<'a>,
-    _elem: PhantomData<E>,
+    _elem: PhantomData<&'a E>,
 }
 
 impl<D, E> Future for Tx<'_, D, E>
@@ -279,7 +279,7 @@ where
     _elem: PhantomData<E>,
 }
 
-/// Perform a full-suplex DMA transfer using two DMA channels
+/// Perform a full-duplex DMA transfer using two DMA channels
 /// that read and write from a single buffer.
 pub fn full_duplex<'a, P, E>(
     rx_channel: &'a mut Channel,

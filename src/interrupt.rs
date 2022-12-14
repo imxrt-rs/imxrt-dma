@@ -178,7 +178,7 @@ impl<'a> Transfer<'a> {
     }
 }
 
-impl<'a> Future for Transfer<'a> {
+impl Future for Transfer<'_> {
     type Output = Result<(), Error>;
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         interrupt::free(|cs| {
@@ -205,7 +205,7 @@ impl<'a> Future for Transfer<'a> {
     }
 }
 
-impl<'a> Drop for Transfer<'a> {
+impl Drop for Transfer<'_> {
     fn drop(&mut self) {
         self.channel.disable();
         self.channel.clear_complete();
