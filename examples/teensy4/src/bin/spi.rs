@@ -237,7 +237,7 @@ fn set_clock_speed(spi: &ral::lpspi::Instance, base: u32, hz: u32) {
     if base / div > hz {
         div += 1;
     }
-    let div = div.saturating_sub(2).min(255).max(0);
+    let div = div.saturating_sub(2).clamp(0, 255);
     ral::write_reg!(
         ral::lpspi,
         spi,
