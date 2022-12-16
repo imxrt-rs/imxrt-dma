@@ -13,4 +13,4 @@ categories = ["embedded", "no-std"]
 
 [dependencies]
 cortex-m = "0.7.2"
-imxrt-ral = "0.4.2"
+ral-registers = "0.1"
