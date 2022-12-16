@@ -1,8 +1,8 @@
 [package]
-name = "imxrt-dma-examples-teensy4"
+name = "examples-teensy4"
 version = "0.1.0"
-authors = ["Ian McIntyre <ianpmcintyre@gmail.com>"]
-edition = "2018"
+edition.workspace = true
+license.workspace = true
 publish = false  # This is an example package
 
 # The library we're demonstrating
