@@ -40,9 +40,9 @@
 //! Once you have a channel, you can use the higher-level DMA APIs, like
 //!
 //! - [`memcpy`](crate::memcpy::memcpy) for memory copies.
-//! - [`transfer`](crate::peripheral::transfer) to transmit data from memory to
+//! - [`write`](crate::peripheral::write) to transmit data from memory to
 //! a peripheral.
-//! - [`receive`](crate::peripheral::receive) to receive data from a peripheral.
+//! - [`read`](crate::peripheral::read) to receive data from a peripheral.
 //! - [`full_duplex`](crate::peripheral::full_duplex) to read / write with a
 //! peripheral using a single buffer.
 //!

@@ -92,8 +92,8 @@ pub(crate) const NO_WAKER: SharedWaker = Mutex::new(RefCell::new(None));
 /// using
 ///
 /// - [`Memcpy`](crate::memcpy::Memcpy) for buffer-to-buffer DMA transfers
-/// - [`Rx`](crate::peripheral::Rx) for peripheral-to-memory DMA transfers
-/// - [`Tx`](crate::peripheral::Tx) for memory-to-peripheral DMA transfers
+/// - [`Read`](crate::peripheral::Read) for peripheral-to-memory DMA transfers
+/// - [`Write`](crate::peripheral::Write) for memory-to-peripheral DMA transfers
 ///
 /// `Transfer` is designed to the DMA `Channel` public interface. If you need to implement
 /// your own transfer future, you may do so.

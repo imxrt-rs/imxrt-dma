@@ -95,9 +95,9 @@ pub unsafe trait Destination<E: Element> {
 /// A DMA transfer that receives data from hardware
 ///
 /// The future resolves when the peripheral has provided all
-/// expected data. Use [`receive()`](crate::peripheral::receive) to construct
+/// expected data. Use [`read()`](crate::peripheral::read) to construct
 /// this future.
-pub struct Rx<'a, S, E>
+pub struct Read<'a, S, E>
 where
     S: Source<E>,
     E: Element,
@@ -108,7 +108,7 @@ where
     _elem: PhantomData<&'a mut E>,
 }
 
-impl<S, E> Future for Rx<'_, S, E>
+impl<S, E> Future for Read<'_, S, E>
 where
     S: Source<E>,
     E: Element,
@@ -120,7 +120,7 @@ where
     }
 }
 
-impl<S, E> Drop for Rx<'_, S, E>
+impl<S, E> Drop for Read<'_, S, E>
 where
     S: Source<E>,
     E: Element,
@@ -132,7 +132,7 @@ where
     }
 }
 
-fn prepare_receive<S, E>(channel: &mut Channel, source: &mut S, buffer: &mut [E])
+fn prepare_read<S, E>(channel: &mut Channel, source: &mut S, buffer: &mut [E])
 where
     S: Source<E>,
     E: Element,
@@ -191,24 +191,24 @@ where
 ///
 /// let mut buffer = [0u8; 32];
 ///
-/// peripheral::receive(
+/// peripheral::read(
 ///     &mut channel_7,
 ///     &mut lpuart,
 ///     &mut buffer,
 /// ).await?;
 /// # Ok(()) }
 /// ```
-pub fn receive<'a, S, E>(
+pub fn read<'a, S, E>(
     channel: &'a mut Channel,
     source: &'a mut S,
     buffer: &'a mut [E],
-) -> Rx<'a, S, E>
+) -> Read<'a, S, E>
 where
     S: Source<E>,
     E: Element,
 {
-    prepare_receive(channel, source, buffer);
-    Rx {
+    prepare_read(channel, source, buffer);
+    Read {
         channel,
         // Safety: transfer is correctly defined
         transfer: unsafe { Transfer::new(channel) },
@@ -220,8 +220,8 @@ where
 /// A DMA transfer that sends data to hardware
 ///
 /// The future resolves when the device has sent all provided data.
-/// Use [`transfer()`](crate::peripheral::transfer) to construct this future.
-pub struct Tx<'a, D, E>
+/// Use [`write()`](crate::peripheral::write) to construct this future.
+pub struct Write<'a, D, E>
 where
     D: Destination<E>,
     E: Element,
@@ -232,7 +232,7 @@ where
     _elem: PhantomData<&'a E>,
 }
 
-impl<D, E> Future for Tx<'_, D, E>
+impl<D, E> Future for Write<'_, D, E>
 where
     D: Destination<E>,
     E: Element,
@@ -244,7 +244,7 @@ where
     }
 }
 
-impl<D, E> Drop for Tx<'_, D, E>
+impl<D, E> Drop for Write<'_, D, E>
 where
     D: Destination<E>,
     E: Element,
@@ -256,7 +256,7 @@ where
     }
 }
 
-fn prepare_transfer<D, E>(channel: &mut Channel, buffer: &[E], destination: &mut D)
+fn prepare_write<D, E>(channel: &mut Channel, buffer: &[E], destination: &mut D)
 where
     D: Destination<E>,
     E: Element,
@@ -315,24 +315,24 @@ where
 ///
 /// let buffer = [4u8, 5, 6, 7, 8];
 ///
-/// peripheral::transfer(
+/// peripheral::write(
 ///     &mut channel_7,
 ///     &buffer,
 ///     &mut lpuart,
 /// ).await?;
 /// # Ok(()) }
 /// ```
-pub fn transfer<'a, D, E>(
+pub fn write<'a, D, E>(
     channel: &'a mut Channel,
     buffer: &'a [E],
     destination: &'a mut D,
-) -> Tx<'a, D, E>
+) -> Write<'a, D, E>
 where
     D: Destination<E>,
     E: Element,
 {
-    prepare_transfer(channel, buffer, destination);
-    Tx {
+    prepare_write(channel, buffer, destination);
+    Write {
         channel,
         destination,
         // Safety: transfer is correctly defined
@@ -447,8 +447,8 @@ where
     P: Bidirectional<E>,
     E: Element,
 {
-    prepare_transfer(tx_channel, buffer, peripheral);
-    prepare_receive(rx_channel, peripheral, buffer);
+    prepare_write(tx_channel, buffer, peripheral);
+    prepare_read(rx_channel, peripheral, buffer);
 
     FullDuplex {
         rx_channel,

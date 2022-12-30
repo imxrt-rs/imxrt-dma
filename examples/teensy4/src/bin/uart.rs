@@ -189,14 +189,14 @@ fn main() -> ! {
 
     loop {
         let mut buffer = [0u8; 1];
-        let receive = imxrt_dma::peripheral::receive(&mut channel, &mut uart, &mut buffer);
-        assert!(support::wfi(receive).is_ok());
+        let read = imxrt_dma::peripheral::read(&mut channel, &mut uart, &mut buffer);
+        assert!(support::wfi(read).is_ok());
 
         log::info!("Received a byte: {}", buffer[0]);
 
         let buffer = [buffer[0]; 32];
-        let transfer = imxrt_dma::peripheral::transfer(&mut channel, &buffer, &mut uart);
-        assert!(support::wfi(transfer).is_ok());
+        let write = imxrt_dma::peripheral::write(&mut channel, &buffer, &mut uart);
+        assert!(support::wfi(write).is_ok());
 
         log::info!("Replied!");
         systick.delay(1);
