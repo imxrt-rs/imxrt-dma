@@ -16,8 +16,8 @@ impl<const CHANNELS: usize> super::Dma<CHANNELS> {
     /// Handle a DMA interrupt
     ///
     /// Checks the interrupt status for the channel identified by `channel`.
-    /// If the channel completed its transfer, or it's in an error state,
-    /// `on_interrupt` wakes the channel's waker.
+    /// If the channel completed its transfer, `on_interrupt` wakes the channel's
+    /// waker.
     ///
     /// Consider calling `on_interrupt` in a DMA channel's interrupt handler:
     ///
@@ -39,9 +39,9 @@ impl<const CHANNELS: usize> super::Dma<CHANNELS> {
     ///
     /// # Safety
     ///
-    /// Caller must ensure that `on_interrupt` is called in the correct interrupt
-    /// handler. Caller must ensure that `channel` is valid for the given system,
-    /// and for the interrupt handler.
+    /// This should only be used when the associated DMA channel is exclusively referenced
+    /// by a DMA transfer future. Caller must ensure that `on_interrupt` is called in
+    /// the correct interrupt handler.
     ///
     /// # Panics
     ///
@@ -102,14 +102,13 @@ pub(crate) const NO_WAKER: SharedWaker = Mutex::new(RefCell::new(None));
 /// use imxrt_dma::{channel::Channel, Transfer};
 ///
 /// # static DMA: imxrt_dma::Dma<32> = unsafe { imxrt_dma::Dma::new(core::ptr::null(), core::ptr::null()) };
+/// # async fn f() -> imxrt_dma::Result<()> {
 /// let my_channel: Channel = // Acquire your channel...
 ///     # unsafe { DMA.channel(0) };
 /// // Properly prepare your transfer...
 /// // Safety: transfer properly prepared
-/// let my_transfer = unsafe { Transfer::new(&my_channel) };
-/// // Execute your transfer with a blocking executor...
-/// # mod executor { pub fn block<F: core::future::Future>(_: F) {} }
-/// executor::block(my_transfer);
+/// unsafe { Transfer::new(&my_channel) }.await?;
+/// # Ok(()) }
 /// ```
 pub struct Transfer<'a> {
     channel: &'a Channel,

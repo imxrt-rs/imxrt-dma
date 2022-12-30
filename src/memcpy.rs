@@ -36,13 +36,14 @@ pub struct Memcpy<'a, E> {
 /// ```no_run
 /// use imxrt_dma::{channel::Channel, memcpy};
 ///
-/// static DMA: imxrt_dma::Dma<32> = unsafe { imxrt_dma::Dma::new(core::ptr::null(), core::ptr::null()) };
+/// # static DMA: imxrt_dma::Dma<32> = unsafe { imxrt_dma::Dma::new(core::ptr::null(), core::ptr::null()) };
 /// // #[cortex_m_rt::interrupt]
 /// fn DMA7() {
-///     // Safety: DMA channel 7 valid
+///     // Safety: DMA channel 7 valid and used by a future.
 ///     unsafe { DMA.on_interrupt(7) };
 /// }
 ///
+/// # async fn f() -> imxrt_dma::Result<()> {
 /// let mut channel_7: Channel = // DMA channel 7
 ///     # unsafe { DMA.channel(7) };
 /// channel_7.set_interrupt_on_completion(true);
@@ -51,9 +52,8 @@ pub struct Memcpy<'a, E> {
 /// let source = [4u32, 5, 6, 7, 8];
 /// let mut destination = [0; 5];
 ///
-/// let transfer = memcpy::memcpy(&source, &mut destination, &mut channel_7);
-/// # mod executor { pub fn wfi(_: impl core::future::Future) {} }
-/// executor::wfi(transfer);
+/// memcpy::memcpy(&source, &mut destination, &mut channel_7).await?;
+/// # Ok(()) }
 /// ```
 pub fn memcpy<'a, E: Element>(
     source: &'a [E],

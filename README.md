@@ -1,18 +1,11 @@
 imxrt-dma
 =========
 
-DMA driver for i.MX RT microcontrollers
+DMA driver for i.MX RT microcontrollers.
 
 **[API Docs (main branch)][main-api-docs]**
 
 [main-api-docs]: https://imxrt-rs.github.io/imxrt-dma/
-
-`imxrt-dma` provides
-
-- an unsafe API for defining and scheduling transfers with DMA `Channel`s
-  and `Transfer`s
-- safe DMA futures for memcpy, peripheral-to-memory, and memory-to-peripheral
-  transfers
 
 See the API docs for more information. To try examples on hardware, see the
 examples directory.
