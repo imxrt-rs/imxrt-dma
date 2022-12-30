@@ -1,105 +1,102 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/peripheral.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>peripheral.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../imxrt_dma/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
-<span id="2">  2</span>
-<span id="3">  3</span>
-<span id="4">  4</span>
-<span id="5">  5</span>
-<span id="6">  6</span>
-<span id="7">  7</span>
-<span id="8">  8</span>
-<span id="9">  9</span>
-<span id="10"> 10</span>
-<span id="11"> 11</span>
-<span id="12"> 12</span>
-<span id="13"> 13</span>
-<span id="14"> 14</span>
-<span id="15"> 15</span>
-<span id="16"> 16</span>
-<span id="17"> 17</span>
-<span id="18"> 18</span>
-<span id="19"> 19</span>
-<span id="20"> 20</span>
-<span id="21"> 21</span>
-<span id="22"> 22</span>
-<span id="23"> 23</span>
-<span id="24"> 24</span>
-<span id="25"> 25</span>
-<span id="26"> 26</span>
-<span id="27"> 27</span>
-<span id="28"> 28</span>
-<span id="29"> 29</span>
-<span id="30"> 30</span>
-<span id="31"> 31</span>
-<span id="32"> 32</span>
-<span id="33"> 33</span>
-<span id="34"> 34</span>
-<span id="35"> 35</span>
-<span id="36"> 36</span>
-<span id="37"> 37</span>
-<span id="38"> 38</span>
-<span id="39"> 39</span>
-<span id="40"> 40</span>
-<span id="41"> 41</span>
-<span id="42"> 42</span>
-<span id="43"> 43</span>
-<span id="44"> 44</span>
-<span id="45"> 45</span>
-<span id="46"> 46</span>
-<span id="47"> 47</span>
-<span id="48"> 48</span>
-<span id="49"> 49</span>
-<span id="50"> 50</span>
-<span id="51"> 51</span>
-<span id="52"> 52</span>
-<span id="53"> 53</span>
-<span id="54"> 54</span>
-<span id="55"> 55</span>
-<span id="56"> 56</span>
-<span id="57"> 57</span>
-<span id="58"> 58</span>
-<span id="59"> 59</span>
-<span id="60"> 60</span>
-<span id="61"> 61</span>
-<span id="62"> 62</span>
-<span id="63"> 63</span>
-<span id="64"> 64</span>
-<span id="65"> 65</span>
-<span id="66"> 66</span>
-<span id="67"> 67</span>
-<span id="68"> 68</span>
-<span id="69"> 69</span>
-<span id="70"> 70</span>
-<span id="71"> 71</span>
-<span id="72"> 72</span>
-<span id="73"> 73</span>
-<span id="74"> 74</span>
-<span id="75"> 75</span>
-<span id="76"> 76</span>
-<span id="77"> 77</span>
-<span id="78"> 78</span>
-<span id="79"> 79</span>
-<span id="80"> 80</span>
-<span id="81"> 81</span>
-<span id="82"> 82</span>
-<span id="83"> 83</span>
-<span id="84"> 84</span>
-<span id="85"> 85</span>
-<span id="86"> 86</span>
-<span id="87"> 87</span>
-<span id="88"> 88</span>
-<span id="89"> 89</span>
-<span id="90"> 90</span>
-<span id="91"> 91</span>
-<span id="92"> 92</span>
-<span id="93"> 93</span>
-<span id="94"> 94</span>
-<span id="95"> 95</span>
-<span id="96"> 96</span>
-<span id="97"> 97</span>
-<span id="98"> 98</span>
-<span id="99"> 99</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/peripheral.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>peripheral.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../imxrt_dma/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
@@ -360,366 +357,676 @@
 <span id="357">357</span>
 <span id="358">358</span>
 <span id="359">359</span>
-</pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! DMA support for hardware peripherals</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+</pre><pre class="rust"><code><span class="doccomment">//! DMA support for hardware peripherals.
+//!
+//! If a driver is compatible with this API, it implements some or all of
+//! the traits in this module. Consult your HAL for more information.
+//!
+//! Each future documents when it resolves. To wake the executor, you can
+//! route the DMA channel&#39;s interrupt handler to [`on_interrupt()`](crate::Dma::on_interrupt).
+//! Otherwise, you can poll the future in a loop.
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">channel</span>::{<span class="self">self</span>, <span class="ident">Channel</span>, <span class="ident">Configuration</span>},
-    <span class="ident">Element</span>, <span class="ident">Error</span>, <span class="ident">Transfer</span>,
+</span><span class="kw">use super</span>::{
+    channel::{<span class="self">self</span>, Channel, Configuration},
+    Element, Error, Transfer,
 };
 
-<span class="kw">use</span> <span class="ident">core</span>::{
-    <span class="ident">future::Future</span>,
-    <span class="ident">marker::PhantomData</span>,
-    <span class="ident">pin::Pin</span>,
-    <span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
+<span class="kw">use </span>core::{
+    future::Future,
+    marker::PhantomData,
+    pin::Pin,
+    task::{Context, Poll},
 };
 
-<span class="doccomment">/// A peripheral that can be the source of DMA data</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// By &#39;source,&#39; we mean that it provides data for a DMA transfer.</span>
-<span class="doccomment">/// A source would be a hardware device writing data into memory,</span>
-<span class="doccomment">/// like a UART receiver.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Source` should only be implemented on peripherals that are</span>
-<span class="doccomment">/// DMA capable. This trait should be implemented by HAL authors</span>
-<span class="doccomment">/// who are exposing DMA capable peripherals.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Peripheral source request signal</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See Table 4-3 of the reference manual. A source may</span>
-    <span class="doccomment">/// has a qualifier like &#39;receive&#39; in the name.</span>
-    <span class="kw">fn</span> <span class="ident">source_signal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-    <span class="doccomment">/// Returns a pointer to the register from which the DMA channel</span>
-    <span class="doccomment">/// reads data</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is the register that software reads to acquire data from</span>
-    <span class="doccomment">/// a device. The type of the pointer describes the type of reads</span>
-    <span class="doccomment">/// the DMA channel performs when transferring data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This memory is assumed to be static. Repeated `source` calls</span>
-    <span class="doccomment">/// should always return the same address.</span>
-    <span class="kw">fn</span> <span class="ident">source_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">E</span>;
-    <span class="doccomment">/// Perform any actions necessary to enable DMA transfers</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Callers use this method to put the peripheral in a state where</span>
-    <span class="doccomment">/// it can supply the DMA channel with data.</span>
-    <span class="kw">fn</span> <span class="ident">enable_source</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>);
-    <span class="doccomment">/// Perform any actions necessary to disable or cancel DMA transfers</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may include undoing the actions in `enable_source`.</span>
-    <span class="kw">fn</span> <span class="ident">disable_source</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>);
+<span class="doccomment">/// A peripheral that can be the source of DMA data
+///
+/// By &#39;source,&#39; we mean that it provides data for a DMA transfer.
+/// A source would be a hardware device writing data into memory,
+/// like a UART receiver.
+///
+/// # Safety
+///
+/// `Source` should only be implemented on peripherals that are
+/// DMA capable. This trait should be implemented by HAL authors
+/// who are exposing DMA capable peripherals.
+</span><span class="kw">pub unsafe trait </span>Source&lt;E: Element&gt; {
+    <span class="doccomment">/// Peripheral source request signal
+    ///
+    /// See Table 4-3 of the reference manual. A source may
+    /// has a qualifier like &#39;receive&#39; in the name.
+    </span><span class="kw">fn </span>source_signal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
+    <span class="doccomment">/// Returns a pointer to the register from which the DMA channel
+    /// reads data
+    ///
+    /// This is the register that software reads to acquire data from
+    /// a device. The type of the pointer describes the type of reads
+    /// the DMA channel performs when transferring data.
+    ///
+    /// This memory is assumed to be static. Repeated `source` calls
+    /// should always return the same address.
+    </span><span class="kw">fn </span>source_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>E;
+    <span class="doccomment">/// Perform any actions necessary to enable DMA transfers
+    ///
+    /// Callers use this method to put the peripheral in a state where
+    /// it can supply the DMA channel with data.
+    </span><span class="kw">fn </span>enable_source(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
+    <span class="doccomment">/// Perform any actions necessary to disable or cancel DMA transfers
+    ///
+    /// This may include undoing the actions in `enable_source`.
+    </span><span class="kw">fn </span>disable_source(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
 }
 
-<span class="doccomment">/// A peripheral that can be the destination for DMA data</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// By &#39;destination,&#39; we mean that it receives data from a DMA transfer.</span>
-<span class="doccomment">/// A destination would be a peripheral that could send data out of</span>
-<span class="doccomment">/// processor memory, like a UART transmitter.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Destination` should only be implemented on peripherals that are</span>
-<span class="doccomment">/// DMA capable. This trait should be implemented by HAL authors</span>
-<span class="doccomment">/// who are exposing DMA capable peripherals.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">Destination</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Peripheral destination request signal</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See Table 4-3 of the reference manual. A destination mave</span>
-    <span class="doccomment">/// has a qualifier like &#39;transfer&#39; in the name.</span>
-    <span class="kw">fn</span> <span class="ident">destination_signal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
-    <span class="doccomment">/// Returns a pointer to the register into which the DMA channel</span>
-    <span class="doccomment">/// writes data</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is the register that software writes to when sending data to a</span>
-    <span class="doccomment">/// device. The type of the pointer describes the type of reads the</span>
-    <span class="doccomment">/// DMA channel performs when transferring data.</span>
-    <span class="kw">fn</span> <span class="ident">destination_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">E</span>;
-    <span class="doccomment">/// Perform any actions necessary to enable DMA transfers</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Callers use this method to put the peripheral into a state where</span>
-    <span class="doccomment">/// it can accept transfers from a DMA channel.</span>
-    <span class="kw">fn</span> <span class="ident">enable_destination</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>);
-    <span class="doccomment">/// Perform any actions necessary to disable or cancel DMA transfers</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may include undoing the actions in `enable_destination`.</span>
-    <span class="kw">fn</span> <span class="ident">disable_destination</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>);
+<span class="doccomment">/// A peripheral that can be the destination for DMA data
+///
+/// By &#39;destination,&#39; we mean that it receives data from a DMA transfer.
+/// A destination would be a peripheral that could send data out of
+/// processor memory, like a UART transmitter.
+///
+/// # Safety
+///
+/// `Destination` should only be implemented on peripherals that are
+/// DMA capable. This trait should be implemented by HAL authors
+/// who are exposing DMA capable peripherals.
+</span><span class="kw">pub unsafe trait </span>Destination&lt;E: Element&gt; {
+    <span class="doccomment">/// Peripheral destination request signal
+    ///
+    /// See Table 4-3 of the reference manual. A destination mave
+    /// has a qualifier like &#39;transfer&#39; in the name.
+    </span><span class="kw">fn </span>destination_signal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32;
+    <span class="doccomment">/// Returns a pointer to the register into which the DMA channel
+    /// writes data
+    ///
+    /// This is the register that software writes to when sending data to a
+    /// device. The type of the pointer describes the type of reads the
+    /// DMA channel performs when transferring data.
+    </span><span class="kw">fn </span>destination_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const </span>E;
+    <span class="doccomment">/// Perform any actions necessary to enable DMA transfers
+    ///
+    /// Callers use this method to put the peripheral into a state where
+    /// it can accept transfers from a DMA channel.
+    </span><span class="kw">fn </span>enable_destination(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
+    <span class="doccomment">/// Perform any actions necessary to disable or cancel DMA transfers
+    ///
+    /// This may include undoing the actions in `enable_destination`.
+    </span><span class="kw">fn </span>disable_destination(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
 }
 
-<span class="doccomment">/// A DMA transfer that receives data from hardware</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`receive`](crate::peripheral::receive) to construct an `Rx`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="doccomment">/// A DMA transfer that receives data from hardware
+///
+/// The future resolves when the peripheral has provided all
+/// expected data. Use [`read()`](crate::peripheral::read) to construct
+/// this future.
+</span><span class="kw">pub struct </span>Read&lt;<span class="lifetime">&#39;a</span>, S, E&gt;
+<span class="kw">where
+    </span>S: Source&lt;E&gt;,
+    E: Element,
 {
-    <span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Channel</span>,
-    <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">S</span>,
-    <span class="ident">transfer</span>: <span class="ident">Transfer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">_elem</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
+    channel: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Channel,
+    source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+    transfer: Transfer&lt;<span class="lifetime">&#39;a</span>&gt;,
+    _elem: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>E&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="kw">impl</span>&lt;S, E&gt; Future <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;_</span>, S, E&gt;
+<span class="kw">where
+    </span>S: Source&lt;E&gt;,
+    E: Element,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
-        <span class="comment">// Safety: no movement from transfer future...</span>
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">map_unchecked_mut</span>(<span class="op">|</span><span class="ident">this</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this</span>.<span class="ident">transfer</span>) }.<span class="ident">poll</span>(<span class="ident">cx</span>)
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="comment">// Safety: no movement from transfer future...
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.map_unchecked_mut(|this| <span class="kw-2">&amp;mut </span>this.transfer) }.poll(cx)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="kw">impl</span>&lt;S, E&gt; Drop <span class="kw">for </span>Read&lt;<span class="lifetime">&#39;_</span>, S, E&gt;
+<span class="kw">where
+    </span>S: Source&lt;E&gt;,
+    E: Element,
 {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">disable_source</span>();
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">is_hardware_signaling</span>() {}
-        <span class="comment">// Drop `transfer` to finish cancellation...</span>
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.source.disable_source();
+        <span class="kw">while </span><span class="self">self</span>.channel.is_hardware_signaling() {}
+        <span class="comment">// Drop `transfer` to finish cancellation...
+    </span>}
+}
+
+<span class="kw">fn </span>prepare_read&lt;S, E&gt;(channel: <span class="kw-2">&amp;mut </span>Channel, source: <span class="kw-2">&amp;mut </span>S, buffer: <span class="kw-2">&amp;mut </span>[E])
+<span class="kw">where
+    </span>S: Source&lt;E&gt;,
+    E: Element,
+{
+    channel.disable();
+
+    channel.set_disable_on_completion(<span class="bool-val">true</span>);
+    channel.set_channel_configuration(Configuration::enable(source.source_signal()));
+    <span class="comment">// Safety: hardware source address must be valid, otherwise impl is unsound.
+    // Destination buffer lifetime captured by future. The combination of minor
+    // loops and transfer iterations ensure that we do not exceed the end of the
+    // destination.
+    </span><span class="kw">unsafe </span>{
+        channel::set_source_hardware(channel, source.source_address());
+        channel::set_destination_linear_buffer(channel, buffer);
+        channel.set_minor_loop_bytes(core::mem::size_of::&lt;E&gt;() <span class="kw">as </span>u32);
+        channel.set_transfer_iterations(buffer.len() <span class="kw">as </span>u16);
+    }
+
+    source.enable_source();
+}
+
+<span class="doccomment">/// Use a DMA channel to receive a `buffer` of elements from the source peripheral.
+///
+/// Consider using a DMA interrupt handler that calls [`on_interrupt()`](crate::Dma::on_interrupt)
+/// to wake the executor when the transfer completes. Otherwise, poll the future.
+///
+/// # Example
+///
+/// Receive 32 bytes from a LPUART peripheral. Wake the executor when the transfer completes.
+///
+/// ```no_run
+/// use imxrt_dma::{peripheral, channel::Channel};
+/// # static DMA: imxrt_dma::Dma&lt;32&gt; = unsafe { imxrt_dma::Dma::new(core::ptr::null(), core::ptr::null()) };
+/// # struct X;
+/// # unsafe impl peripheral::Source&lt;u8&gt; for X {
+/// #   fn source_signal(&amp;self) -&gt; u32 { 0 }
+/// #   fn source_address(&amp;self) -&gt; *const u8 { panic!() }
+/// #   fn enable_source(&amp;mut self) { panic!() }
+/// #   fn disable_source(&amp;mut self) { panic!() }
+/// # }
+///
+/// // #[cortex_m_rt::interrupt]
+/// fn DMA7() {
+///     // Safety: DMA channel 7 valid and used by a future.
+///     unsafe { DMA.on_interrupt(7) };
+/// }
+///
+/// # async fn f() -&gt; imxrt_dma::Result&lt;()&gt; {
+/// let mut lpuart = // A LPUART peripheral
+///     # X;
+/// let mut channel_7: Channel = // DMA channel 7
+///     # unsafe { DMA.channel(7) };
+/// channel_7.set_interrupt_on_completion(true);
+/// // TODO unmask interrupts in NVIC!
+///
+/// let mut buffer = [0u8; 32];
+///
+/// peripheral::read(
+///     &amp;mut channel_7,
+///     &amp;mut lpuart,
+///     &amp;mut buffer,
+/// ).await?;
+/// # Ok(()) }
+/// ```
+</span><span class="kw">pub fn </span>read&lt;<span class="lifetime">&#39;a</span>, S, E&gt;(
+    channel: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Channel,
+    source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>S,
+    buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[E],
+) -&gt; Read&lt;<span class="lifetime">&#39;a</span>, S, E&gt;
+<span class="kw">where
+    </span>S: Source&lt;E&gt;,
+    E: Element,
+{
+    prepare_read(channel, source, buffer);
+    Read {
+        channel,
+        <span class="comment">// Safety: transfer is correctly defined
+        </span>transfer: <span class="kw">unsafe </span>{ Transfer::new(channel) },
+        source,
+        _elem: PhantomData,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">prepare_receive</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">E</span>])
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="doccomment">/// A DMA transfer that sends data to hardware
+///
+/// The future resolves when the device has sent all provided data.
+/// Use [`write()`](crate::peripheral::write) to construct this future.
+</span><span class="kw">pub struct </span>Write&lt;<span class="lifetime">&#39;a</span>, D, E&gt;
+<span class="kw">where
+    </span>D: Destination&lt;E&gt;,
+    E: Element,
 {
-    <span class="ident">channel</span>.<span class="ident">disable</span>();
-
-    <span class="ident">channel</span>.<span class="ident">set_disable_on_completion</span>(<span class="bool-val">true</span>);
-    <span class="ident">channel</span>.<span class="ident">set_channel_configuration</span>(<span class="ident">Configuration::enable</span>(<span class="ident">source</span>.<span class="ident">source_signal</span>()));
-    <span class="comment">// Safety: hardware source address must be valid, otherwise impl is unsound.</span>
-    <span class="comment">// Destination buffer lifetime captured by future. The combination of minor</span>
-    <span class="comment">// loops and transfer iterations ensure that we do not exceed the end of the</span>
-    <span class="comment">// destination.</span>
-    <span class="kw">unsafe</span> {
-        <span class="ident">channel::set_source_hardware</span>(<span class="ident">channel</span>, <span class="ident">source</span>.<span class="ident">source_address</span>());
-        <span class="ident">channel::set_destination_linear_buffer</span>(<span class="ident">channel</span>, <span class="ident">buffer</span>);
-        <span class="ident">channel</span>.<span class="ident">set_minor_loop_bytes</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>);
-        <span class="ident">channel</span>.<span class="ident">set_transfer_iterations</span>(<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u16</span>);
-    }
-
-    <span class="ident">source</span>.<span class="ident">enable_source</span>();
+    channel: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Channel,
+    destination: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>D,
+    transfer: Transfer&lt;<span class="lifetime">&#39;a</span>&gt;,
+    _elem: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>E&gt;,
 }
 
-<span class="doccomment">/// Use a DMA channel to receive a `buffer` of elements from the source peripheral</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">receive</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>(
-    <span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Channel</span>,
-    <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">S</span>,
-    <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">E</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="kw">impl</span>&lt;D, E&gt; Future <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;_</span>, D, E&gt;
+<span class="kw">where
+    </span>D: Destination&lt;E&gt;,
+    E: Element,
 {
-    <span class="ident">prepare_receive</span>(<span class="ident">channel</span>, <span class="ident">source</span>, <span class="ident">buffer</span>);
-    <span class="ident">Rx</span> {
-        <span class="ident">channel</span>,
-        <span class="comment">// Safety: transfer is correctly defined</span>
-        <span class="ident">transfer</span>: <span class="kw">unsafe</span> { <span class="ident">Transfer::new</span>(<span class="ident">channel</span>) },
-        <span class="ident">source</span>,
-        <span class="ident">_elem</span>: <span class="ident">PhantomData</span>,
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="comment">// Safety: no movement from transfer future...
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.map_unchecked_mut(|this| <span class="kw-2">&amp;mut </span>this.transfer) }.poll(cx)
     }
 }
 
-<span class="doccomment">/// A DMA transfer that sends data to hardware</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See [`transfer`](crate::peripheral::transfer) to create a `Tx`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Destination</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="kw">impl</span>&lt;D, E&gt; Drop <span class="kw">for </span>Write&lt;<span class="lifetime">&#39;_</span>, D, E&gt;
+<span class="kw">where
+    </span>D: Destination&lt;E&gt;,
+    E: Element,
 {
-    <span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Channel</span>,
-    <span class="ident">destination</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">D</span>,
-    <span class="ident">transfer</span>: <span class="ident">Transfer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">_elem</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.destination.disable_destination();
+        <span class="kw">while </span><span class="self">self</span>.channel.is_hardware_signaling() {}
+        <span class="comment">// Drop `transfer` to finish cancellation...
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Destination</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="kw">fn </span>prepare_write&lt;D, E&gt;(channel: <span class="kw-2">&amp;mut </span>Channel, buffer: <span class="kw-2">&amp;</span>[E], destination: <span class="kw-2">&amp;mut </span>D)
+<span class="kw">where
+    </span>D: Destination&lt;E&gt;,
+    E: Element,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
-        <span class="comment">// Safety: no movement from transfer future...</span>
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">map_unchecked_mut</span>(<span class="op">|</span><span class="ident">this</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this</span>.<span class="ident">transfer</span>) }.<span class="ident">poll</span>(<span class="ident">cx</span>)
+    channel.disable();
+    channel.set_disable_on_completion(<span class="bool-val">true</span>);
+    channel.set_channel_configuration(Configuration::enable(destination.destination_signal()));
+    <span class="comment">// Safety: hardware address must be valid, otherwise impl is unsound.
+    // Source buffer lifetime captured by future. The combination of minor
+    // loops and transfer iterations ensure that we do not exceed the end of the
+    // source.
+    </span><span class="kw">unsafe </span>{
+        channel::set_source_linear_buffer(channel, buffer);
+        channel::set_destination_hardware(channel, destination.destination_address());
+        channel.set_minor_loop_bytes(core::mem::size_of::&lt;E&gt;() <span class="kw">as </span>u32);
+        channel.set_transfer_iterations(buffer.len() <span class="kw">as </span>u16);
+    }
+
+    destination.enable_destination();
+}
+
+<span class="doccomment">/// Use a DMA channel to send a `buffer` of data to the destination peripheral.
+///
+/// Consider using a DMA interrupt handler that calls [`on_interrupt()`](crate::Dma::on_interrupt)
+/// to wake the executor when the transfer completes. Otherwise, poll the future.
+///
+/// # Example
+///
+/// Send five bytes to a LPUART device. Wake the executor when the transfer completes.
+///
+/// ```no_run
+/// use imxrt_dma::{peripheral, channel::Channel};
+/// # static DMA: imxrt_dma::Dma&lt;32&gt; = unsafe { imxrt_dma::Dma::new(core::ptr::null(), core::ptr::null()) };
+/// # struct X;
+/// # unsafe impl peripheral::Destination&lt;u8&gt; for X {
+/// #   fn destination_signal(&amp;self) -&gt; u32 { 0 }
+/// #   fn destination_address(&amp;self) -&gt; *const u8 { panic!() }
+/// #   fn enable_destination(&amp;mut self) { panic!() }
+/// #   fn disable_destination(&amp;mut self) { panic!() }
+/// # }
+///
+/// // #[cortex_m_rt::interrupt]
+/// fn DMA7() {
+///     // Safety: DMA channel 7 valid and used by a future.
+///     unsafe { DMA.on_interrupt(7) };
+/// }
+///
+/// # async fn f() -&gt; imxrt_dma::Result&lt;()&gt; {
+/// let mut lpuart = // A LPUART peripheral
+///     # X;
+/// let mut channel_7: Channel = // DMA channel 7
+///     # unsafe { DMA.channel(7) };
+///
+/// channel_7.set_interrupt_on_completion(true);
+/// // TODO unmask interrupts in NVIC!
+///
+/// let buffer = [4u8, 5, 6, 7, 8];
+///
+/// peripheral::write(
+///     &amp;mut channel_7,
+///     &amp;buffer,
+///     &amp;mut lpuart,
+/// ).await?;
+/// # Ok(()) }
+/// ```
+</span><span class="kw">pub fn </span>write&lt;<span class="lifetime">&#39;a</span>, D, E&gt;(
+    channel: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Channel,
+    buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[E],
+    destination: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>D,
+) -&gt; Write&lt;<span class="lifetime">&#39;a</span>, D, E&gt;
+<span class="kw">where
+    </span>D: Destination&lt;E&gt;,
+    E: Element,
+{
+    prepare_write(channel, buffer, destination);
+    Write {
+        channel,
+        destination,
+        <span class="comment">// Safety: transfer is correctly defined
+        </span>transfer: <span class="kw">unsafe </span>{ Transfer::new(channel) },
+        _elem: PhantomData,
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Destination</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="doccomment">/// Indicates that a peripheral can read and write from a single buffer
+/// using two simultaneous DMA transfers
+///
+/// It&#39;s expected that the TX operation will drive the RX operation.
+/// A SPI transfer can be modeled in this manner.
+///
+/// # Safety
+///
+/// `Bidirectional` assumes the same safety requirements as source and
+/// destination. Addtionally, you ensure that the peripheral is capable
+/// of this kind of transfer from a single buffer.
+</span><span class="kw">pub unsafe trait </span>Bidirectional&lt;E: Element&gt;: Source&lt;E&gt; + Destination&lt;E&gt; {}
+
+<span class="doccomment">/// A full-duplex DMA transfer from a single buffer
+///
+/// `FullDuplex` only works with [`Bidirectional`](crate::peripheral::Bidirectional)
+/// peripherals. The transfer acts on a single buffer, sending and receiving data
+/// element by element. It yields when all elements are sent and received.
+///
+/// To create this future, use [`full_duplex()`].
+</span><span class="kw">pub struct </span>FullDuplex&lt;<span class="lifetime">&#39;a</span>, P, E&gt;
+<span class="kw">where
+    </span>P: Bidirectional&lt;E&gt;,
+    E: Element,
 {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">destination</span>.<span class="ident">disable_destination</span>();
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">channel</span>.<span class="ident">is_hardware_signaling</span>() {}
-        <span class="comment">// Drop `transfer` to finish cancellation...</span>
+    rx_channel: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Channel,
+    rx_transfer: Transfer&lt;<span class="lifetime">&#39;a</span>&gt;,
+    rx_done: bool,
+    tx_channel: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Channel,
+    tx_transfer: Transfer&lt;<span class="lifetime">&#39;a</span>&gt;,
+    tx_done: bool,
+    peripheral: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>P,
+    _elem: PhantomData&lt;E&gt;,
+}
+
+<span class="doccomment">/// Perform a full-duplex DMA transfer using two DMA channels
+/// that read and write from a single buffer.
+///
+/// Consider using a DMA interrupt handler that calls [`on_interrupt()`](crate::Dma::on_interrupt)
+/// to wake the executor when the transfer completes. Otherwise, poll the future.
+///
+/// # Example
+///
+/// Perform a full-duplex transfer of five `u32`s with a LPSPI peripheral. Generate an interrupt
+/// after receiving the final LPSPI word.
+///
+/// ```no_run
+/// use imxrt_dma::{peripheral, channel::Channel};
+/// # static DMA: imxrt_dma::Dma&lt;32&gt; = unsafe { imxrt_dma::Dma::new(core::ptr::null(), core::ptr::null()) };
+/// # struct X;
+/// # unsafe impl peripheral::Source&lt;u32&gt; for X {
+/// #   fn source_signal(&amp;self) -&gt; u32 { 0 }
+/// #   fn source_address(&amp;self) -&gt; *const u32 { panic!() }
+/// #   fn enable_source(&amp;mut self) { panic!() }
+/// #   fn disable_source(&amp;mut self) { panic!() }
+/// # }
+/// # unsafe impl peripheral::Destination&lt;u32&gt; for X {
+/// #   fn destination_signal(&amp;self) -&gt; u32 { 0 }
+/// #   fn destination_address(&amp;self) -&gt; *const u32 { panic!() }
+/// #   fn enable_destination(&amp;mut self) { panic!() }
+/// #   fn disable_destination(&amp;mut self) { panic!() }
+/// # }
+/// # unsafe impl peripheral::Bidirectional&lt;u32&gt; for X {}
+///
+/// // #[cortex_m_rt::interrupt]
+/// fn DMA7() {
+///     // Safety: DMA channel 7 valid and used by a future.
+///     unsafe { DMA.on_interrupt(7) };
+/// }
+///
+/// # async fn f() -&gt; imxrt_dma::Result&lt;()&gt; {
+/// let mut lpspi = // A LPSPI peripheral
+///     # X;
+/// let mut channel_7: Channel = // DMA channel 7
+///     # unsafe { DMA.channel(7) };
+/// let mut channel_8: Channel = // DMA channel 8
+///     # unsafe { DMA.channel(8) };
+///
+/// // Using channel_7 for the receive data. Once we&#39;ve received
+/// // the last word from the LPSPI peripheral, generate an interrupt.
+/// channel_7.set_interrupt_on_completion(true);
+/// // Don&#39;t trigger an interrupt after we _send_ the last LPSPI
+/// // word from memory; we&#39;re still waiting for one word response.
+/// channel_8.set_interrupt_on_completion(false);
+/// // TODO unmask interrupts in NVIC!
+///
+/// let mut buffer = [4u32, 5, 6, 7, 8];
+///
+/// peripheral::full_duplex(
+///     &amp;mut channel_7,
+///     &amp;mut channel_8,
+///     &amp;mut lpspi,
+///     &amp;mut buffer,
+/// ).await?;
+/// # Ok(()) }
+/// ```
+</span><span class="kw">pub fn </span>full_duplex&lt;<span class="lifetime">&#39;a</span>, P, E&gt;(
+    rx_channel: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Channel,
+    tx_channel: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Channel,
+    peripheral: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>P,
+    buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[E],
+) -&gt; FullDuplex&lt;<span class="lifetime">&#39;a</span>, P, E&gt;
+<span class="kw">where
+    </span>P: Bidirectional&lt;E&gt;,
+    E: Element,
+{
+    prepare_write(tx_channel, buffer, peripheral);
+    prepare_read(rx_channel, peripheral, buffer);
+
+    FullDuplex {
+        rx_channel,
+        rx_transfer: <span class="kw">unsafe </span>{ Transfer::new(rx_channel) },
+        rx_done: <span class="bool-val">false</span>,
+        tx_channel,
+        tx_transfer: <span class="kw">unsafe </span>{ Transfer::new(tx_channel) },
+        tx_done: <span class="bool-val">false</span>,
+        peripheral,
+        _elem: PhantomData,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">prepare_transfer</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">E</span>], <span class="ident">destination</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">D</span>)
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Destination</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="kw">impl</span>&lt;P, E&gt; Future <span class="kw">for </span>FullDuplex&lt;<span class="lifetime">&#39;_</span>, P, E&gt;
+<span class="kw">where
+    </span>P: Bidirectional&lt;E&gt;,
+    E: Element,
 {
-    <span class="ident">channel</span>.<span class="ident">disable</span>();
-    <span class="ident">channel</span>.<span class="ident">set_disable_on_completion</span>(<span class="bool-val">true</span>);
-    <span class="ident">channel</span>.<span class="ident">set_channel_configuration</span>(<span class="ident">Configuration::enable</span>(<span class="ident">destination</span>.<span class="ident">destination_signal</span>()));
-    <span class="comment">// Safety: hardware address must be valid, otherwise impl is unsound.</span>
-    <span class="comment">// Source buffer lifetime captured by future. The combination of minor</span>
-    <span class="comment">// loops and transfer iterations ensure that we do not exceed the end of the</span>
-    <span class="comment">// source.</span>
-    <span class="kw">unsafe</span> {
-        <span class="ident">channel::set_source_linear_buffer</span>(<span class="ident">channel</span>, <span class="ident">buffer</span>);
-        <span class="ident">channel::set_destination_hardware</span>(<span class="ident">channel</span>, <span class="ident">destination</span>.<span class="ident">destination_address</span>());
-        <span class="ident">channel</span>.<span class="ident">set_minor_loop_bytes</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>);
-        <span class="ident">channel</span>.<span class="ident">set_transfer_iterations</span>(<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u16</span>);
-    }
+    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), Error&gt;;
 
-    <span class="ident">destination</span>.<span class="ident">enable_destination</span>();
-}
-
-<span class="doccomment">/// Use a DMA channel to send a `buffer` of data to the destination peripheral</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transfer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span>(
-    <span class="ident">channel</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Channel</span>,
-    <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">E</span>],
-    <span class="ident">destination</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">D</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Destination</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
-{
-    <span class="ident">prepare_transfer</span>(<span class="ident">channel</span>, <span class="ident">buffer</span>, <span class="ident">destination</span>);
-    <span class="ident">Tx</span> {
-        <span class="ident">channel</span>,
-        <span class="ident">destination</span>,
-        <span class="comment">// Safety: transfer is correctly defined</span>
-        <span class="ident">transfer</span>: <span class="kw">unsafe</span> { <span class="ident">Transfer::new</span>(<span class="ident">channel</span>) },
-        <span class="ident">_elem</span>: <span class="ident">PhantomData</span>,
-    }
-}
-
-<span class="doccomment">/// Indicates that a peripheral can read and write from a single buffer</span>
-<span class="doccomment">/// using two simultaneous DMA transfers</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It&#39;s expected that the TX operation will drive the RX operation.</span>
-<span class="doccomment">/// A SPI transfer can be modeled in this manner.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Bidirectional` assumes the same safety requirements as source and</span>
-<span class="doccomment">/// destination. Addtionally, you ensure that the peripheral is capable</span>
-<span class="doccomment">/// of this kind of transfer from a single buffer.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">Bidirectional</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>: <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Destination</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {}
-
-<span class="doccomment">/// A full-duplex DMA transfer from a single buffer</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `FullDuplex` only works with [`Bidirectional`](crate::peripheral::Bidirectional)</span>
-<span class="doccomment">/// peripherals. The transfer acts on a single buffer, sending and receiving data</span>
-<span class="doccomment">/// element by element.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FullDuplex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">P</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Bidirectional</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
-{
-    <span class="ident">rx_channel</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Channel</span>,
-    <span class="ident">rx_transfer</span>: <span class="ident">Transfer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">rx_done</span>: <span class="ident">bool</span>,
-    <span class="ident">tx_channel</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Channel</span>,
-    <span class="ident">tx_transfer</span>: <span class="ident">Transfer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">tx_done</span>: <span class="ident">bool</span>,
-    <span class="ident">peripheral</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">P</span>,
-    <span class="ident">_elem</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-}
-
-<span class="doccomment">/// Perform a full-suplex DMA transfer using two DMA channels</span>
-<span class="doccomment">/// that read and write from a single buffer.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">full_duplex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">P</span>, <span class="ident">E</span><span class="op">&gt;</span>(
-    <span class="ident">rx_channel</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Channel</span>,
-    <span class="ident">tx_channel</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Channel</span>,
-    <span class="ident">peripheral</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">P</span>,
-    <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">E</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FullDuplex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">P</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Bidirectional</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
-{
-    <span class="ident">prepare_transfer</span>(<span class="ident">tx_channel</span>, <span class="ident">buffer</span>, <span class="ident">peripheral</span>);
-    <span class="ident">prepare_receive</span>(<span class="ident">rx_channel</span>, <span class="ident">peripheral</span>, <span class="ident">buffer</span>);
-
-    <span class="ident">FullDuplex</span> {
-        <span class="ident">rx_channel</span>,
-        <span class="ident">rx_transfer</span>: <span class="kw">unsafe</span> { <span class="ident">Transfer::new</span>(<span class="ident">rx_channel</span>) },
-        <span class="ident">rx_done</span>: <span class="bool-val">false</span>,
-        <span class="ident">tx_channel</span>,
-        <span class="ident">tx_transfer</span>: <span class="kw">unsafe</span> { <span class="ident">Transfer::new</span>(<span class="ident">tx_channel</span>) },
-        <span class="ident">tx_done</span>: <span class="bool-val">false</span>,
-        <span class="ident">peripheral</span>,
-        <span class="ident">_elem</span>: <span class="ident">PhantomData</span>,
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">FullDuplex</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">P</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Bidirectional</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
-{
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">rx_done</span> {
-            <span class="comment">// Safety: pin projection OK, no movement from future...</span>
-            <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="self">self</span>.<span class="ident">as_mut</span>()
-                    .<span class="ident">map_unchecked_mut</span>(<span class="op">|</span><span class="ident">this</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this</span>.<span class="ident">rx_transfer</span>)
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.rx_done {
+            <span class="comment">// Safety: pin projection OK, no movement from future...
+            </span><span class="kw">let </span>poll = <span class="kw">unsafe </span>{
+                <span class="self">self</span>.as_mut()
+                    .map_unchecked_mut(|this| <span class="kw-2">&amp;mut </span>this.rx_transfer)
             }
-            .<span class="ident">poll</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
-            <span class="comment">// Safety: OK to toggle a bool...</span>
-            <span class="kw-2">*</span><span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>().<span class="ident">rx_done</span> } <span class="op">=</span> <span class="ident">poll</span>.<span class="ident">is_ready</span>();
+            .poll(cx)<span class="question-mark">?</span>;
+            <span class="comment">// Safety: OK to toggle a bool...
+            </span><span class="kw-2">*</span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut </span><span class="self">self</span>.as_mut().get_unchecked_mut().rx_done } = poll.is_ready();
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">tx_done</span> {
-            <span class="comment">// Safety: pin projection OK, no movement from future...</span>
-            <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="self">self</span>.<span class="ident">as_mut</span>()
-                    .<span class="ident">map_unchecked_mut</span>(<span class="op">|</span><span class="ident">this</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">this</span>.<span class="ident">tx_transfer</span>)
+        <span class="kw">if </span>!<span class="self">self</span>.tx_done {
+            <span class="comment">// Safety: pin projection OK, no movement from future...
+            </span><span class="kw">let </span>poll = <span class="kw">unsafe </span>{
+                <span class="self">self</span>.as_mut()
+                    .map_unchecked_mut(|this| <span class="kw-2">&amp;mut </span>this.tx_transfer)
             }
-            .<span class="ident">poll</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
-            <span class="comment">// Safety: OK to toggle a bool...</span>
-            <span class="kw-2">*</span><span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>().<span class="ident">tx_done</span> } <span class="op">=</span> <span class="ident">poll</span>.<span class="ident">is_ready</span>();
+            .poll(cx)<span class="question-mark">?</span>;
+            <span class="comment">// Safety: OK to toggle a bool...
+            </span><span class="kw-2">*</span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut </span><span class="self">self</span>.as_mut().get_unchecked_mut().tx_done } = poll.is_ready();
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tx_done</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">rx_done</span> {
-            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
-        } <span class="kw">else</span> {
-            <span class="ident">Poll::Pending</span>
+        <span class="kw">if </span><span class="self">self</span>.tx_done &amp;&amp; <span class="self">self</span>.rx_done {
+            Poll::Ready(<span class="prelude-val">Ok</span>(()))
+        } <span class="kw">else </span>{
+            Poll::Pending
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">FullDuplex</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">P</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Bidirectional</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Element</span>,
+<span class="kw">impl</span>&lt;P, E&gt; Drop <span class="kw">for </span>FullDuplex&lt;<span class="lifetime">&#39;_</span>, P, E&gt;
+<span class="kw">where
+    </span>P: Bidirectional&lt;E&gt;,
+    E: Element,
 {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">peripheral</span>.<span class="ident">disable_destination</span>();
-        <span class="self">self</span>.<span class="ident">peripheral</span>.<span class="ident">disable_source</span>();
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">tx_channel</span>.<span class="ident">is_hardware_signaling</span>() {}
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">rx_channel</span>.<span class="ident">is_hardware_signaling</span>() {}
-        <span class="comment">// Drop the transfers to finish cancellation...</span>
-    }
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.peripheral.disable_destination();
+        <span class="self">self</span>.peripheral.disable_source();
+        <span class="kw">while </span><span class="self">self</span>.tx_channel.is_hardware_signaling() {}
+        <span class="kw">while </span><span class="self">self</span>.rx_channel.is_hardware_signaling() {}
+        <span class="comment">// Drop the transfers to finish cancellation...
+    </span>}
 }
-</pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0 (69f9c33d7 2022-12-12)" ></div></body></html>

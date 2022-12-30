@@ -1,15 +1,12 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../imxrt_dma/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
-<span id="2"> 2</span>
-<span id="3"> 3</span>
-<span id="4"> 4</span>
-<span id="5"> 5</span>
-<span id="6"> 6</span>
-<span id="7"> 7</span>
-<span id="8"> 8</span>
-<span id="9"> 9</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../imxrt_dma/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
 <span id="10">10</span>
 <span id="11">11</span>
 <span id="12">12</span>
@@ -92,98 +89,176 @@
 <span id="89">89</span>
 <span id="90">90</span>
 <span id="91">91</span>
-</pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! Direct Memory Access (DMA) driver for i.MX RT processors</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `imxrt-dma` provides</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - an unsafe API for defining and scheduling transfers with DMA `Channel`s</span>
-<span class="doccomment">//!   and `Transfer`s</span>
-<span class="doccomment">//! - safe DMA futures for memcpy, peripheral-to-memory, and memory-to-peripheral</span>
-<span class="doccomment">//!   transfers</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This DMA driver may be re-exported from a HAL. If it is, you should consider</span>
-<span class="doccomment">//! using the safer APIs provided by your HAL.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Portability</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This DMA driver works across all considered i.MX RT variants (1010 and 1060</span>
-<span class="doccomment">//! family). You must make sure that the DMA channel you&#39;re creating is valid for</span>
-<span class="doccomment">//! your i.MX RT processor. This only matters on i.MX RT 1010 processors, which</span>
-<span class="doccomment">//! only support 16 DMA channels. Creating an invalid channel for your 1010 processor</span>
-<span class="doccomment">//! will result in a channel that references reserved memory.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ### License</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Licensed under either of</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](./LICENSE-APACHE))</span>
-<span class="doccomment">//! - [MIT License](http://opensource.org/licenses/MIT) ([LICENSE-MIT](./LICENSE-MIT))</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! at your option.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Unless you explicitly state otherwise, any contribution intentionally submitted</span>
-<span class="doccomment">//! for inclusion in the work by you, as defined in the Apache-2.0 license, shall be</span>
-<span class="doccomment">//! dual licensed as above, without any additional terms or conditions.</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Direct Memory Access (DMA) driver for i.MX RT processors.
+//!
+//! `imxrt-dma` provides
+//!
+//! - an unsafe API for defining and scheduling transfers with DMA `Channel`s.
+//! - safe DMA futures for memcpy, peripheral-to-memory, and memory-to-peripheral
+//!   transfers.
+//!
+//! This DMA driver may be re-exported from a hardware abstraction layer
+//! (HAL). If it is, you should use the safer APIs provided by your HAL.
+//!
+//! # Getting started
+//!
+//! To allocate a [`Dma`](crate::Dma) driver, you&#39;ll need to know
+//!
+//! 1. the location of the DMA controller registers.
+//! 2. the location of the DMAMUX registers.
+//! 3. the number of DMA channels supported by your chip.
+//!
+//! These parameters depend on the i.MX RT chip you&#39;re targeting. If you&#39;re
+//! already using [`imxrt-ral`](https://docs.rs/imxrt-ral), consider using the
+//! `DMA` and `DMAMUX` constants for the addresses. You&#39;re always responsible
+//! for configuring the number of DMA channels.
+//!
+//! With those three parameters, assign a `Dma` to a static. Then, use that
+//! object to create DMA [`Channel`](crate::channel::Channel)s.
+//!
+//! ```
+//! use imxrt_dma::Dma;
+//! # const DMA_PTR: *const () = core::ptr::null() as _;
+//! # const DMAMUX_PTR: *const () = core::ptr::null() as  _;
+//!
+//! // Safety: addresses and channel count are valid for this target.
+//! static DMA: Dma&lt;32&gt; = unsafe { Dma::new(DMA_PTR, DMAMUX_PTR) };
+//!
+//! // Safety: we only allocate one DMA channel 7 object.
+//! let mut channel = unsafe { DMA.channel(7) };
+//! ```
+//!
+//! Once you have a channel, you can use the higher-level DMA APIs, like
+//!
+//! - [`memcpy`](crate::memcpy::memcpy) for memory copies.
+//! - [`write`](crate::peripheral::write) to transmit data from memory to
+//! a peripheral.
+//! - [`read`](crate::peripheral::read) to receive data from a peripheral.
+//! - [`full_duplex`](crate::peripheral::full_duplex) to read / write with a
+//! peripheral using a single buffer.
+//!
+//! Peripheral transfers depends on a peripheral&#39;s DMA support. These are signaled
+//! through various [`peripheral`](crate::peripheral) traits.
+//!
+//! For a lower-level API, use the [`channel`](crate::channel) objects and helper
+//! functions.
+//!
+//! ### License
+//!
+//! Licensed under either of
+//!
+//! - [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](./LICENSE-APACHE))
+//! - [MIT License](http://opensource.org/licenses/MIT) ([LICENSE-MIT](./LICENSE-MIT))
+//!
+//! at your option.
+//!
+//! Unless you explicitly state otherwise, any contribution intentionally submitted
+//! for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+//! dual licensed as above, without any additional terms or conditions.
 
-<span class="attribute">#![<span class="ident">no_std</span>]</span>
+</span><span class="attribute">#![no_std]
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">channel</span>;
-<span class="kw">mod</span> <span class="ident">element</span>;
-<span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">mod</span> <span class="ident">interrupt</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">memcpy</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">peripheral</span>;
-<span class="kw">mod</span> <span class="ident">ral</span>;
+</span><span class="kw">pub mod </span>channel;
+<span class="kw">mod </span>element;
+<span class="kw">mod </span>error;
+<span class="kw">mod </span>interrupt;
+<span class="kw">pub mod </span>memcpy;
+<span class="kw">pub mod </span>peripheral;
+<span class="kw">mod </span>ral;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">element::Element</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error::Error</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">interrupt</span>::{<span class="ident">on_error</span>, <span class="ident">on_interrupt</span>, <span class="ident">Transfer</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ral::tcd::BandwidthControl</span>;
+<span class="kw">pub use </span>element::Element;
+<span class="kw">pub use </span>error::Error;
+<span class="kw">pub use </span>interrupt::Transfer;
+<span class="kw">pub use </span>ral::tcd::BandwidthControl;
 
-<span class="doccomment">/// A DMA result</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A DMA result
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = core::result::Result&lt;T, Error&gt;;
 
-<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">future::Future</span>, <span class="ident">pin::Pin</span>, <span class="ident">task::Poll</span>};
-
-<span class="doccomment">/// Poll a future with a dummy waker.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Use `poll_no_wake` when you want to drive a future to completion, but you</span>
-<span class="doccomment">/// don&#39;t care about the future waking an executor. It may be used to initiate</span>
-<span class="doccomment">/// a DMA transfer that will later be awaited with [`block`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Do not use `poll_no_wake` if you want an executor to be woken when the DMA</span>
-<span class="doccomment">/// transfer completes.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_no_wake</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">F::Output</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Future</span>,
-{
-    <span class="kw">use</span> <span class="ident">core::task</span>::{<span class="ident">Context</span>, <span class="ident">RawWaker</span>, <span class="ident">RawWakerVTable</span>, <span class="ident">Waker</span>};
-    <span class="kw">const</span> <span class="ident">VTABLE</span>: <span class="ident">RawWakerVTable</span> <span class="op">=</span> <span class="ident">RawWakerVTable::new</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RAW_WAKER</span>, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {}, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {}, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {});
-
-    <span class="kw">const</span> <span class="ident">RAW_WAKER</span>: <span class="ident">RawWaker</span> <span class="op">=</span> <span class="ident">RawWaker::new</span>(<span class="ident">core::ptr::null</span>(), <span class="kw-2">&amp;</span><span class="ident">VTABLE</span>);
-    <span class="comment">// Safety: raw waker meets documented requirements.</span>
-    <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Waker::from_raw</span>(<span class="ident">RAW_WAKER</span>) };
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><span class="ident">waker</span>);
-    <span class="ident">future</span>.<span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>)
+<span class="doccomment">/// A DMA driver.
+///
+/// This DMA driver manages the DMA controller and the multiplexer.
+/// It&#39;s configured with pointers to both peripherals.
+///
+/// `Dma` allocates [`Channel`](channel::Channel)s. `Channel` provides
+/// the interface for scheduling transfers.
+</span><span class="kw">pub struct </span>Dma&lt;<span class="kw">const </span>CHANNELS: usize&gt; {
+    controller: ral::Static&lt;ral::dma::RegisterBlock&gt;,
+    multiplexer: ral::Static&lt;ral::dmamux::RegisterBlock&gt;,
+    wakers: [SharedWaker; CHANNELS],
 }
 
-<span class="doccomment">/// Block until the future returns a result.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `block` invokes [`poll_no_wake`] in a loop until the future</span>
-<span class="doccomment">/// returns a result. Consider using `block` after starting a transfer</span>
-<span class="doccomment">/// with `poll_no_wake`, and after doing other work.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">future</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">F::Output</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Future</span>,
-{
-    <span class="kw">loop</span> {
-        <span class="kw">match</span> <span class="ident">poll_no_wake</span>(<span class="ident">future</span>.<span class="ident">as_mut</span>()) {
-            <span class="ident">Poll::Ready</span>(<span class="ident">result</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">result</span>,
-            <span class="ident">Poll::Pending</span> <span class="op">=</span><span class="op">&gt;</span> {}
+<span class="comment">// Safety: OK to allocate a DMA driver in a static context.
+</span><span class="kw">unsafe impl</span>&lt;<span class="kw">const </span>CHANNELS: usize&gt; Sync <span class="kw">for </span>Dma&lt;CHANNELS&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="kw">const </span>CHANNELS: usize&gt; Dma&lt;CHANNELS&gt; {
+    <span class="doccomment">/// Create the DMA driver.
+    ///
+    /// Note that this can evaluate at compile time. Consider using this to
+    /// expose a `Dma` through your higher-level API that you can use to
+    /// allocate DMA channels.
+    ///
+    /// `CHANNELS` specifies the total number of channels supported by the DMA
+    /// controller. It&#39;s referenced when allocating channels.
+    ///
+    /// # Safety
+    ///
+    /// Caller must make sure that `controller` is a pointer to the start of the
+    /// DMA controller register block. Caller must also make sure that
+    /// `multiplexer` is a pointer to the start of the DMA multiplexer. Both
+    /// pointers must be valid for your MCU.
+    ///
+    /// An incorrect `CHANNELS` value prevents proper bounds checking when
+    /// allocating channels. This may result in DMA channels that point to
+    /// invalid memory.
+    </span><span class="kw">pub const unsafe fn </span>new(controller: <span class="kw-2">*const </span>(), multiplexer: <span class="kw-2">*const </span>()) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            controller: ral::Static(controller.cast()),
+            multiplexer: ral::Static(multiplexer.cast()),
+            wakers: [NO_WAKER; CHANNELS],
         }
     }
 }
-</pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+
+<span class="kw">use </span>interrupt::{SharedWaker, NO_WAKER};
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0 (69f9c33d7 2022-12-12)" ></div></body></html>

@@ -1,105 +1,102 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/channel.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>channel.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../imxrt_dma/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
-<span id="2">  2</span>
-<span id="3">  3</span>
-<span id="4">  4</span>
-<span id="5">  5</span>
-<span id="6">  6</span>
-<span id="7">  7</span>
-<span id="8">  8</span>
-<span id="9">  9</span>
-<span id="10"> 10</span>
-<span id="11"> 11</span>
-<span id="12"> 12</span>
-<span id="13"> 13</span>
-<span id="14"> 14</span>
-<span id="15"> 15</span>
-<span id="16"> 16</span>
-<span id="17"> 17</span>
-<span id="18"> 18</span>
-<span id="19"> 19</span>
-<span id="20"> 20</span>
-<span id="21"> 21</span>
-<span id="22"> 22</span>
-<span id="23"> 23</span>
-<span id="24"> 24</span>
-<span id="25"> 25</span>
-<span id="26"> 26</span>
-<span id="27"> 27</span>
-<span id="28"> 28</span>
-<span id="29"> 29</span>
-<span id="30"> 30</span>
-<span id="31"> 31</span>
-<span id="32"> 32</span>
-<span id="33"> 33</span>
-<span id="34"> 34</span>
-<span id="35"> 35</span>
-<span id="36"> 36</span>
-<span id="37"> 37</span>
-<span id="38"> 38</span>
-<span id="39"> 39</span>
-<span id="40"> 40</span>
-<span id="41"> 41</span>
-<span id="42"> 42</span>
-<span id="43"> 43</span>
-<span id="44"> 44</span>
-<span id="45"> 45</span>
-<span id="46"> 46</span>
-<span id="47"> 47</span>
-<span id="48"> 48</span>
-<span id="49"> 49</span>
-<span id="50"> 50</span>
-<span id="51"> 51</span>
-<span id="52"> 52</span>
-<span id="53"> 53</span>
-<span id="54"> 54</span>
-<span id="55"> 55</span>
-<span id="56"> 56</span>
-<span id="57"> 57</span>
-<span id="58"> 58</span>
-<span id="59"> 59</span>
-<span id="60"> 60</span>
-<span id="61"> 61</span>
-<span id="62"> 62</span>
-<span id="63"> 63</span>
-<span id="64"> 64</span>
-<span id="65"> 65</span>
-<span id="66"> 66</span>
-<span id="67"> 67</span>
-<span id="68"> 68</span>
-<span id="69"> 69</span>
-<span id="70"> 70</span>
-<span id="71"> 71</span>
-<span id="72"> 72</span>
-<span id="73"> 73</span>
-<span id="74"> 74</span>
-<span id="75"> 75</span>
-<span id="76"> 76</span>
-<span id="77"> 77</span>
-<span id="78"> 78</span>
-<span id="79"> 79</span>
-<span id="80"> 80</span>
-<span id="81"> 81</span>
-<span id="82"> 82</span>
-<span id="83"> 83</span>
-<span id="84"> 84</span>
-<span id="85"> 85</span>
-<span id="86"> 86</span>
-<span id="87"> 87</span>
-<span id="88"> 88</span>
-<span id="89"> 89</span>
-<span id="90"> 90</span>
-<span id="91"> 91</span>
-<span id="92"> 92</span>
-<span id="93"> 93</span>
-<span id="94"> 94</span>
-<span id="95"> 95</span>
-<span id="96"> 96</span>
-<span id="97"> 97</span>
-<span id="98"> 98</span>
-<span id="99"> 99</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/channel.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>channel.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../imxrt_dma/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
@@ -595,601 +592,619 @@
 <span id="592">592</span>
 <span id="593">593</span>
 <span id="594">594</span>
-</pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! DMA channels</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `channel` contains the DMA [`Channel`] type, along with helper functions for</span>
-<span class="doccomment">//! defining transfers.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `Channel` methods that specify memory involved in transfers are marked `unsafe`. You must</span>
-<span class="doccomment">//! be very careful when calling these methods, particuarly when a channel is already</span>
-<span class="doccomment">//! enabled.</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+</pre><pre class="rust"><code><span class="doccomment">//! DMA channels
+//!
+//! `channel` contains the DMA [`Channel`] type, along with helper functions for
+//! defining transfers.
+//!
+//! `Channel` methods that specify memory involved in transfers are marked `unsafe`. You must
+//! be very careful when calling these methods, particuarly when a channel is already
+//! enabled.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">element::Element</span>,
-    <span class="ident">ral</span>::{<span class="self">self</span>, <span class="ident">dma</span>, <span class="ident">dmamux</span>, <span class="ident">tcd::BandwidthControl</span>, <span class="ident">Static</span>, <span class="ident">DMA</span>, <span class="ident">MULTIPLEXER</span>},
-    <span class="ident">Error</span>,
+</span><span class="kw">use crate</span>::{
+    element::Element,
+    ral::{<span class="self">self</span>, dma, dmamux, tcd::BandwidthControl, Static},
+    Error,
 };
 
-<span class="doccomment">/// A DMA channel</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// You should rely on your HAL to allocate `Channel`s. If your HAL does not allocate channels,</span>
-<span class="doccomment">/// or if you&#39;re desigining the HAL, use [`new`](#method.new) to create a new DMA channel.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `Channel` stores memory addresses independent of the memory lifetime. You must make</span>
-<span class="doccomment">/// sure that the channel&#39;s state is valid before enabling a transfer!</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Channel</span> {
-    <span class="doccomment">/// Our channel number, expected to be between [0, 32)</span>
-    <span class="ident">index</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// Reference to the DMA registers</span>
-    <span class="ident">registers</span>: <span class="ident">Static</span><span class="op">&lt;</span><span class="ident">dma::RegisterBlock</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Reference to the DMA multiplexer</span>
-    <span class="ident">multiplexer</span>: <span class="ident">Static</span><span class="op">&lt;</span><span class="ident">dmamux::RegisterBlock</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">Channel</span> {
-    <span class="doccomment">/// Creates the DMA channel described by `index`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will create a handle that may alias global, mutable state.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You must make sure that `index` describes a valid DMA channel for your system.</span>
-    <span class="doccomment">/// If you&#39;re using this driver on a i.MX RT 1010 processor, you must make sure</span>
-    <span class="doccomment">/// that `index` is less than 16.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `index` is greater than or equal to 32.</span>
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="comment">// TODO consider breaking the API and return `Option&lt;Channel&gt;`</span>
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="number">32</span> {
-            <span class="ident">Channel</span> {
-                <span class="ident">index</span>,
-                <span class="ident">registers</span>: <span class="ident">DMA</span>,
-                <span class="ident">multiplexer</span>: <span class="ident">MULTIPLEXER</span>,
-            }
-        } <span class="kw">else</span> {
-            <span class="macro">panic!</span>(<span class="string">&quot;DMA channel index {} exceeds 32&quot;</span>, <span class="ident">index</span>);
+<span class="kw">impl</span>&lt;<span class="kw">const </span>CHANNELS: usize&gt; <span class="kw">super</span>::Dma&lt;CHANNELS&gt; {
+    <span class="doccomment">/// Creates the DMA channel described by `index`.
+    ///
+    /// # Safety
+    ///
+    /// This will create a handle that may alias global, mutable state. You should only create
+    /// one channel per index. If there are multiple channels for the same index, you&#39;re
+    /// responsible for ensuring synchronized access.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is greater than or equal to the maximum number of channels.
+    </span><span class="kw">pub unsafe fn </span>channel(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">self</span>, index: usize) -&gt; Channel {
+        <span class="macro">assert!</span>(index &lt; CHANNELS);
+        Channel {
+            index,
+            registers: <span class="self">self</span>.controller,
+            multiplexer: <span class="self">self</span>.multiplexer,
+            waker: <span class="kw-2">&amp;</span><span class="self">self</span>.wakers[index],
         }
     }
+}
 
-    <span class="doccomment">/// Enable the DMA channel for transfers</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `enable()` allows the DMA controller to read and write from the memory</span>
-    <span class="doccomment">/// addresses stored in the channel. This is very unsafe:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - you must ensure that the lifetime of all memory is greater than the</span>
-    <span class="doccomment">///   lifetime of the transfer</span>
-    <span class="doccomment">/// - you must ensure that no one else is using this channel for anything</span>
-    <span class="doccomment">///   else</span>
-    <span class="doccomment">/// - if the transfer uses a circular buffer, you must ensure that the circular</span>
-    <span class="doccomment">///   buffer is correctly sized and aligned.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">enable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Immutable write OK. No other methods directly modify ERQ.</span>
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">SERQ</span>.<span class="ident">write</span>(<span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u8</span>);
+<span class="doccomment">/// A DMA channel
+///
+/// You should rely on your HAL to allocate `Channel`s. If your HAL does not allocate channels,
+/// or if you&#39;re desigining the HAL, use [`Dma`](crate::Dma) to create channels.
+///
+/// The `Channel` stores memory addresses independent of the memory lifetime. You must make
+/// sure that the channel&#39;s state is valid before enabling a transfer!
+</span><span class="kw">pub struct </span>Channel {
+    <span class="doccomment">/// Our channel number, expected to be between [0, 32)
+    </span>index: usize,
+    <span class="doccomment">/// Reference to the DMA registers
+    </span>registers: Static&lt;dma::RegisterBlock&gt;,
+    <span class="doccomment">/// Reference to the DMA multiplexer
+    </span>multiplexer: Static&lt;dmamux::RegisterBlock&gt;,
+    <span class="doccomment">/// This channel&#39;s waker.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) waker: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">super</span>::SharedWaker,
+}
+
+<span class="kw">impl </span>Channel {
+    <span class="doccomment">/// Enable the DMA channel for transfers
+    ///
+    /// # Safety
+    ///
+    /// `enable()` allows the DMA controller to read and write from the memory
+    /// addresses stored in the channel. This is very unsafe:
+    ///
+    /// - you must ensure that the lifetime of all memory is greater than the
+    ///   lifetime of the transfer
+    /// - you must ensure that no one else is using this channel for anything
+    ///   else
+    /// - if the transfer uses a circular buffer, you must ensure that the circular
+    ///   buffer is correctly sized and aligned.
+    </span><span class="kw">pub unsafe fn </span>enable(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Immutable write OK. No other methods directly modify ERQ.
+        </span><span class="self">self</span>.registers.SERQ.write(<span class="self">self</span>.index <span class="kw">as </span>u8);
     }
 
-    <span class="doccomment">/// Returns the DMA channel number</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Channels are unique and numbered within the half-open range `[0, 32)`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">index</span>
+    <span class="doccomment">/// Returns the DMA channel number
+    ///
+    /// Channels are unique and numbered within the half-open range `[0, 32)`.
+    </span><span class="kw">pub fn </span>channel(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.index
     }
 
-    <span class="doccomment">/// Set the channel&#39;s bandwidth control</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - `None` disables bandwidth control (default setting)</span>
-    <span class="doccomment">/// - `Some(bwc)` sets the bandwidth control to `bwc`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bandwidth_control</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bandwidth</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BandwidthControl</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">BandwidthControl::raw</span>(<span class="ident">bandwidth</span>);
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::modify_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">CSR</span>, <span class="ident">BWC</span>: <span class="ident">raw</span>);
+    <span class="doccomment">/// Set the channel&#39;s bandwidth control
+    ///
+    /// - `None` disables bandwidth control (default setting)
+    /// - `Some(bwc)` sets the bandwidth control to `bwc`
+    </span><span class="kw">pub fn </span>set_bandwidth_control(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bandwidth: <span class="prelude-ty">Option</span>&lt;BandwidthControl&gt;) {
+        <span class="kw">let </span>raw = BandwidthControl::raw(bandwidth);
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::modify_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, CSR, BWC: raw);
     }
 
-    <span class="doccomment">/// Reset the transfer control descriptor owned by the DMA channel</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `reset` should be called during channel initialization to put the</span>
-    <span class="doccomment">/// channel into a known, good state.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">tcd</span>().<span class="ident">reset</span>();
+    <span class="doccomment">/// Reset the transfer control descriptor owned by the DMA channel
+    ///
+    /// `reset` should be called during channel initialization to put the
+    /// channel into a known, good state.
+    </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.tcd().reset();
     }
 
-    <span class="doccomment">/// Returns a handle to this channel&#39;s transfer control descriptor</span>
-    <span class="kw">fn</span> <span class="ident">tcd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw">crate</span><span class="ident">::ral::tcd::RegisterBlock</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">TCD</span>[<span class="self">self</span>.<span class="ident">index</span>]
+    <span class="doccomment">/// Returns a handle to this channel&#39;s transfer control descriptor
+    </span><span class="kw">fn </span>tcd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">crate</span>::ral::tcd::RegisterBlock {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.registers.TCD[<span class="self">self</span>.index]
     }
 
-    <span class="doccomment">/// Set the source address for a DMA transfer</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `saddr` should be a memory location that can provide the DMA controller</span>
-    <span class="doccomment">/// with data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the DMA channel is already enabled, the DMA engine may start reading this</span>
-    <span class="doccomment">/// memory location. You must ensure that reads to `saddr` do not perform</span>
-    <span class="doccomment">/// inappropriate side effects. You must ensure `saddr` is valid for the</span>
-    <span class="doccomment">/// lifetime of the transfer.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_source_address</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">saddr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">E</span>) {
-        <span class="comment">// Immutable write OK. 32-bit aligned store on SADDR.</span>
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">SADDR</span>, <span class="ident">saddr</span> <span class="kw">as</span> <span class="ident">u32</span>);
+    <span class="doccomment">/// Set the source address for a DMA transfer
+    ///
+    /// `saddr` should be a memory location that can provide the DMA controller
+    /// with data.
+    ///
+    /// # Safety
+    ///
+    /// If the DMA channel is already enabled, the DMA engine may start reading this
+    /// memory location. You must ensure that reads to `saddr` do not perform
+    /// inappropriate side effects. You must ensure `saddr` is valid for the
+    /// lifetime of the transfer.
+    </span><span class="kw">pub unsafe fn </span>set_source_address&lt;E: Element&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, saddr: <span class="kw-2">*const </span>E) {
+        <span class="comment">// Immutable write OK. 32-bit aligned store on SADDR.
+        </span><span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, SADDR, saddr <span class="kw">as </span>u32);
     }
 
-    <span class="doccomment">/// Set the source offset *in bytes*</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `offset` could be negative, which would decrement the address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method could allow a DMA engine to read beyond a buffer or</span>
-    <span class="doccomment">/// address. You must ensure that the source is valid for these offsets.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_source_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">i16</span>) {
-        <span class="comment">// Immutable write OK. 16-bit aligned store on SOFF.</span>
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">SOFF</span>, <span class="ident">offset</span>);
+    <span class="doccomment">/// Set the source offset *in bytes*
+    ///
+    /// `offset` could be negative, which would decrement the address.
+    ///
+    /// # Safety
+    ///
+    /// This method could allow a DMA engine to read beyond a buffer or
+    /// address. You must ensure that the source is valid for these offsets.
+    </span><span class="kw">pub unsafe fn </span>set_source_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: i16) {
+        <span class="comment">// Immutable write OK. 16-bit aligned store on SOFF.
+        </span><span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, SOFF, offset);
     }
 
-    <span class="doccomment">/// Set the destination address for a DMA transfer</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `daddr` should be a memory location that can store data from the</span>
-    <span class="doccomment">/// DMA controller.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the DMA channel is already enabled, the DMA engine may start</span>
-    <span class="doccomment">/// writing to this address. You must ensure that writes to `daddr`</span>
-    <span class="doccomment">/// are safe, and that the memory is valid for the lifetime of the</span>
-    <span class="doccomment">/// transfer.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_destination_address</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">daddr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">E</span>) {
-        <span class="comment">// Immutable write OK. 32-bit aligned store on DADDR.</span>
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">DADDR</span>, <span class="ident">daddr</span> <span class="kw">as</span> <span class="ident">u32</span>);
+    <span class="doccomment">/// Set the destination address for a DMA transfer
+    ///
+    /// `daddr` should be a memory location that can store data from the
+    /// DMA controller.
+    ///
+    /// # Safety
+    ///
+    /// If the DMA channel is already enabled, the DMA engine may start
+    /// writing to this address. You must ensure that writes to `daddr`
+    /// are safe, and that the memory is valid for the lifetime of the
+    /// transfer.
+    </span><span class="kw">pub unsafe fn </span>set_destination_address&lt;E: Element&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, daddr: <span class="kw-2">*const </span>E) {
+        <span class="comment">// Immutable write OK. 32-bit aligned store on DADDR.
+        </span><span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, DADDR, daddr <span class="kw">as </span>u32);
     }
 
-    <span class="doccomment">/// Set the destination offset *in bytes*</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `offset` could be negative, which would decrement the address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method could allow a DMA engine to write beyond the range of</span>
-    <span class="doccomment">/// a buffer. You must ensure that the destination is valid for these</span>
-    <span class="doccomment">/// offsets.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_destination_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">i16</span>) {
-        <span class="comment">// Immutable write OK. 16-bit aligned store on DOFF.</span>
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">DOFF</span>, <span class="ident">offset</span>);
+    <span class="doccomment">/// Set the destination offset *in bytes*
+    ///
+    /// `offset` could be negative, which would decrement the address.
+    ///
+    /// # Safety
+    ///
+    /// This method could allow a DMA engine to write beyond the range of
+    /// a buffer. You must ensure that the destination is valid for these
+    /// offsets.
+    </span><span class="kw">pub unsafe fn </span>set_destination_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: i16) {
+        <span class="comment">// Immutable write OK. 16-bit aligned store on DOFF.
+        </span><span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, DOFF, offset);
     }
 
-    <span class="doccomment">/// Set the transfer attributes for the source</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An incorrect `modulo` value may allow the DMA engine to loop back</span>
-    <span class="doccomment">/// to an incorrect address. You must ensure that `modulo` is valid</span>
-    <span class="doccomment">/// for your source.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_source_attributes</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">modulo</span>: <span class="ident">u8</span>) {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
+    <span class="doccomment">/// Set the transfer attributes for the source
+    ///
+    /// # Safety
+    ///
+    /// An incorrect `modulo` value may allow the DMA engine to loop back
+    /// to an incorrect address. You must ensure that `modulo` is valid
+    /// for your source.
+    </span><span class="kw">pub unsafe fn </span>set_source_attributes&lt;E: Element&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, modulo: u8) {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
         <span class="macro">ral::write_reg!</span>(
-            <span class="kw">crate</span><span class="ident">::ral::tcd</span>,
-            <span class="ident">tcd</span>,
-            <span class="ident">SATTR</span>,
-            <span class="ident">MOD</span>: <span class="ident">modulo</span>,
-            <span class="ident">SIZE</span>: <span class="ident">E::DATA_TRANSFER_ID</span>
+            <span class="kw">crate</span>::ral::tcd,
+            tcd,
+            SATTR,
+            MOD: modulo,
+            SIZE: E::DATA_TRANSFER_ID
         );
     }
 
-    <span class="doccomment">/// Set the source last address adjustment *in bytes*</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This could allow the DMA engine to reference an invalid source buffer.</span>
-    <span class="doccomment">/// You must ensure that the adjustment performed by the DMA engine is</span>
-    <span class="doccomment">/// valid, assuming that another DMA transfer immediately runs after the</span>
-    <span class="doccomment">/// current transfer completes.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_source_last_address_adjustment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">adjustment</span>: <span class="ident">i32</span>) {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">SLAST</span>, <span class="ident">adjustment</span>);
+    <span class="doccomment">/// Set the source last address adjustment *in bytes*
+    ///
+    /// # Safety
+    ///
+    /// This could allow the DMA engine to reference an invalid source buffer.
+    /// You must ensure that the adjustment performed by the DMA engine is
+    /// valid, assuming that another DMA transfer immediately runs after the
+    /// current transfer completes.
+    </span><span class="kw">pub unsafe fn </span>set_source_last_address_adjustment(<span class="kw-2">&amp;</span><span class="self">self</span>, adjustment: i32) {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, SLAST, adjustment);
     }
 
-    <span class="doccomment">/// Set the destination last addrss adjustment *in bytes*</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This could allow the DMA engine to reference an invalid destination address.</span>
-    <span class="doccomment">/// You must ensure that the adjustment performed by the DMA engine is</span>
-    <span class="doccomment">/// valid, assuming that another DMA transfer immediately runs after the</span>
-    <span class="doccomment">/// current transfer completes.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_destination_last_address_adjustment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">adjustment</span>: <span class="ident">i32</span>) {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">DLAST_SGA</span>, <span class="ident">adjustment</span>);
+    <span class="doccomment">/// Set the destination last addrss adjustment *in bytes*
+    ///
+    /// # Safety
+    ///
+    /// This could allow the DMA engine to reference an invalid destination address.
+    /// You must ensure that the adjustment performed by the DMA engine is
+    /// valid, assuming that another DMA transfer immediately runs after the
+    /// current transfer completes.
+    </span><span class="kw">pub unsafe fn </span>set_destination_last_address_adjustment(<span class="kw-2">&amp;</span><span class="self">self</span>, adjustment: i32) {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, DLAST_SGA, adjustment);
     }
 
-    <span class="doccomment">/// Set the transfer attributes for the destination</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// An incorrect `modulo` value may allow the DMA engine to loop back</span>
-    <span class="doccomment">/// to an incorrect address. You must ensure that `modulo` is valid</span>
-    <span class="doccomment">/// for your destination.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_destination_attributes</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">modulo</span>: <span class="ident">u8</span>) {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
+    <span class="doccomment">/// Set the transfer attributes for the destination
+    ///
+    /// # Safety
+    ///
+    /// An incorrect `modulo` value may allow the DMA engine to loop back
+    /// to an incorrect address. You must ensure that `modulo` is valid
+    /// for your destination.
+    </span><span class="kw">pub unsafe fn </span>set_destination_attributes&lt;E: Element&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, modulo: u8) {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
         <span class="macro">ral::write_reg!</span>(
-            <span class="kw">crate</span><span class="ident">::ral::tcd</span>,
-            <span class="ident">tcd</span>,
-            <span class="ident">DATTR</span>,
-            <span class="ident">MOD</span>: <span class="ident">modulo</span>,
-            <span class="ident">SIZE</span>: <span class="ident">E::DATA_TRANSFER_ID</span>
+            <span class="kw">crate</span>::ral::tcd,
+            tcd,
+            DATTR,
+            MOD: modulo,
+            SIZE: E::DATA_TRANSFER_ID
         );
     }
 
-    <span class="doccomment">/// Set the number of *bytes* to transfer per minor loop</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Describes how many bytes we should transfer for each DMA service request.</span>
-    <span class="doccomment">/// Note that `nbytes` of `0` is interpreted as a 4GB transfer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This might allow the DMA engine to read beyond the source, or write beyond</span>
-    <span class="doccomment">/// the destination. Caller must ensure that the number of bytes per minor loop</span>
-    <span class="doccomment">/// is valid for the given transfer.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_minor_loop_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nbytes</span>: <span class="ident">u32</span>) {
-        <span class="comment">// Immutable write OK. 32-bit store on NBYTES.</span>
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">NBYTES</span>, <span class="ident">nbytes</span>);
+    <span class="doccomment">/// Set the number of *bytes* to transfer per minor loop
+    ///
+    /// Describes how many bytes we should transfer for each DMA service request.
+    /// Note that `nbytes` of `0` is interpreted as a 4GB transfer.
+    ///
+    /// # Safety
+    ///
+    /// This might allow the DMA engine to read beyond the source, or write beyond
+    /// the destination. Caller must ensure that the number of bytes per minor loop
+    /// is valid for the given transfer.
+    </span><span class="kw">pub unsafe fn </span>set_minor_loop_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, nbytes: u32) {
+        <span class="comment">// Immutable write OK. 32-bit store on NBYTES.
+        </span><span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, NBYTES, nbytes);
     }
 
-    <span class="doccomment">/// Tells the DMA channel how many transfer iterations to perform</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A &#39;transfer iteration&#39; is a read from a source, and a write to a destination, with</span>
-    <span class="doccomment">/// read and write sizes described by a minor loop. Each iteration requires a DMA</span>
-    <span class="doccomment">/// service request, either from hardware or from software.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Safety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may allow the DMA engine to read beyond the source, or write beyond</span>
-    <span class="doccomment">/// the destination. Caller must ensure that the number of iterations is valid</span>
-    <span class="doccomment">/// for the transfer.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_transfer_iterations</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iterations</span>: <span class="ident">u16</span>) {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">CITER</span>, <span class="ident">iterations</span>);
-        <span class="macro">ral::write_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">BITER</span>, <span class="ident">iterations</span>);
+    <span class="doccomment">/// Tells the DMA channel how many transfer iterations to perform
+    ///
+    /// A &#39;transfer iteration&#39; is a read from a source, and a write to a destination, with
+    /// read and write sizes described by a minor loop. Each iteration requires a DMA
+    /// service request, either from hardware or from software. The maximum number of iterations
+    /// is 2^15.
+    ///
+    /// # Safety
+    ///
+    /// This may allow the DMA engine to read beyond the source, or write beyond
+    /// the destination. Caller must ensure that the number of iterations is valid
+    /// for the transfer.
+    </span><span class="kw">pub unsafe fn </span>set_transfer_iterations(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iterations: u16) {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="comment">// Note that this is clearing the ELINK bit. We don&#39;t have support
+        // for channel-to-channel linking right now. Clearing ELINK is intentional
+        // to use the whole 15 bits for iterations.
+        </span><span class="macro">ral::modify_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, CITER, CITER: iterations);
+        <span class="macro">ral::modify_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, BITER, BITER: iterations);
     }
 
-    <span class="doccomment">/// Set the DMAMUX channel configuration</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See the [`Configuration`](crate::channel::Configuration) documentation</span>
-    <span class="doccomment">/// for more information.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Only the first four DMA channels support periodic triggering from PIT timers. This method</span>
-    <span class="doccomment">/// panics if `triggering` is set for the [`Enable`](crate::channel::Configuration)</span>
-    <span class="doccomment">/// variant, but the channel does not support triggering.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_channel_configuration</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">configuration</span>: <span class="ident">Configuration</span>) {
-        <span class="comment">// Immutable write OK. 32-bit store on configuration register.</span>
-        <span class="kw">let</span> <span class="ident">chcfg</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">multiplexer</span>.<span class="ident">chcfg</span>[<span class="self">self</span>.<span class="ident">index</span>];
-        <span class="kw">match</span> <span class="ident">configuration</span> {
-            <span class="ident">Configuration::Off</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">chcfg</span>.<span class="ident">write</span>(<span class="number">0</span>),
-            <span class="ident">Configuration::Enable</span> { <span class="ident">source</span>, <span class="ident">periodic</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">source</span> <span class="op">|</span> <span class="ident">dmamux::RegisterBlock::ENBL</span>;
-                <span class="kw">if</span> <span class="ident">periodic</span> {
+    <span class="doccomment">/// Returns the beginning transfer iterations setting for the channel.
+    ///
+    /// This reflects the last call to `set_transfer_iterations`.
+    </span><span class="kw">pub fn </span>beginning_transfer_iterations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16 {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::read_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, BITER, BITER)
+    }
+
+    <span class="doccomment">/// Set the DMAMUX channel configuration
+    ///
+    /// See the [`Configuration`](crate::channel::Configuration) documentation
+    /// for more information.
+    ///
+    /// # Panics
+    ///
+    /// Only the first four DMA channels support periodic triggering from PIT timers. This method
+    /// panics if `triggering` is set for the [`Enable`](crate::channel::Configuration)
+    /// variant, but the channel does not support triggering.
+    </span><span class="kw">pub fn </span>set_channel_configuration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, configuration: Configuration) {
+        <span class="comment">// Immutable write OK. 32-bit store on configuration register.
+        </span><span class="kw">let </span>chcfg = <span class="kw-2">&amp;</span><span class="self">self</span>.multiplexer.chcfg[<span class="self">self</span>.index];
+        <span class="kw">match </span>configuration {
+            Configuration::Off =&gt; chcfg.write(<span class="number">0</span>),
+            Configuration::Enable { source, periodic } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>v = source | dmamux::RegisterBlock::ENBL;
+                <span class="kw">if </span>periodic {
                     <span class="macro">assert!</span>(
-                        <span class="self">self</span>.<span class="ident">channel</span>() <span class="op">&lt;</span> <span class="number">4</span>,
-                        <span class="string">&quot;Requested DMA periodic triggering on an unsupported channel.&quot;</span>
-                    );
-                    <span class="ident">v</span> <span class="op">|</span><span class="op">=</span> <span class="ident">dmamux::RegisterBlock::TRIG</span>;
+                        <span class="self">self</span>.channel() &lt; <span class="number">4</span>,
+                        <span class="string">&quot;Requested DMA periodic triggering on an unsupported channel.&quot;
+                    </span>);
+                    v |= dmamux::RegisterBlock::TRIG;
                 }
-                <span class="ident">chcfg</span>.<span class="ident">write</span>(<span class="ident">v</span>);
+                chcfg.write(v);
             }
-            <span class="ident">Configuration::AlwaysOn</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// See note in reference manual: when A_ON is high, SOURCE is ignored.</span>
-                <span class="ident">chcfg</span>.<span class="ident">write</span>(<span class="ident">dmamux::RegisterBlock::ENBL</span> <span class="op">|</span> <span class="ident">dmamux::RegisterBlock::A_ON</span>)
+            Configuration::AlwaysOn =&gt; {
+                <span class="comment">// See note in reference manual: when A_ON is high, SOURCE is ignored.
+                </span>chcfg.write(dmamux::RegisterBlock::ENBL | dmamux::RegisterBlock::A_ON)
             }
         }
     }
 
-    <span class="doccomment">/// Returns `true` if the DMA channel is receiving a service signal from hardware</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_hardware_signaling</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">HRS</span>.<span class="ident">read</span>() <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">index</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    <span class="doccomment">/// Returns `true` if the DMA channel is receiving a service signal from hardware
+    </span><span class="kw">pub fn </span>is_hardware_signaling(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.registers.HRS.read() &amp; (<span class="number">1 </span>&lt;&lt; <span class="self">self</span>.index) != <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Disable the DMA channel, preventing any DMA transfers
+    </span><span class="kw">pub fn </span>disable(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Immutable write OK. No other methods directly modify ERQ.
+        </span><span class="self">self</span>.registers.CERQ.write(<span class="self">self</span>.index <span class="kw">as </span>u8);
     }
 
-    <span class="doccomment">/// Disable the DMA channel, preventing any DMA transfers</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Immutable write OK. No other methods directly modify ERQ.</span>
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">CERQ</span>.<span class="ident">write</span>(<span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u8</span>);
+    <span class="doccomment">/// Returns `true` if this DMA channel generated an interrupt
+    </span><span class="kw">pub fn </span>is_interrupt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.registers.INT.read() &amp; (<span class="number">1 </span>&lt;&lt; <span class="self">self</span>.index) != <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Clear the interrupt flag from this DMA channel
+    </span><span class="kw">pub fn </span>clear_interrupt(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Immutable write OK. No other methods modify INT.
+        </span><span class="self">self</span>.registers.CINT.write(<span class="self">self</span>.index <span class="kw">as </span>u8);
     }
 
-    <span class="doccomment">/// Returns `true` if this DMA channel generated an interrupt</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_interrupt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">INT</span>.<span class="ident">read</span>() <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">index</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    <span class="doccomment">/// Enable or disable &#39;disable on completion&#39;
+    ///
+    /// &#39;Disable on completion&#39; lets the DMA channel automatically clear the request signal
+    /// when it completes a transfer.
+    </span><span class="kw">pub fn </span>set_disable_on_completion(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dreq: bool) {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::modify_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, CSR, DREQ: dreq <span class="kw">as </span>u16);
     }
 
-    <span class="doccomment">/// Clear the interrupt flag from this DMA channel</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_interrupt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Immutable write OK. No other methods modify INT.</span>
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">CINT</span>.<span class="ident">write</span>(<span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u8</span>);
+    <span class="doccomment">/// Enable or disable interrupt generation when the transfer completes
+    ///
+    /// You&#39;re responsible for registering your interrupt handler.
+    </span><span class="kw">pub fn </span>set_interrupt_on_completion(<span class="kw-2">&amp;mut </span><span class="self">self</span>, intr: bool) {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::modify_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, CSR, INTMAJOR: intr <span class="kw">as </span>u16);
     }
 
-    <span class="doccomment">/// Enable or disable &#39;disable on completion&#39;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// &#39;Disable on completion&#39; lets the DMA channel automatically clear the request signal</span>
-    <span class="doccomment">/// when it completes a transfer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_disable_on_completion</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dreq</span>: <span class="ident">bool</span>) {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::modify_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">CSR</span>, <span class="ident">DREQ</span>: <span class="ident">dreq</span> <span class="kw">as</span> <span class="ident">u16</span>);
+    <span class="doccomment">/// Indicates if the DMA transfer has completed
+    </span><span class="kw">pub fn </span>is_complete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::read_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, CSR, DONE == <span class="number">1</span>)
     }
 
-    <span class="doccomment">/// Enable or disable interrupt generation when the transfer completes</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You&#39;re responsible for registering your interrupt handler.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_interrupt_on_completion</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">intr</span>: <span class="ident">bool</span>) {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::modify_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">CSR</span>, <span class="ident">INTMAJOR</span>: <span class="ident">intr</span> <span class="kw">as</span> <span class="ident">u16</span>);
+    <span class="doccomment">/// Clears completion indication
+    </span><span class="kw">pub fn </span>clear_complete(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Immutable write OK. CDNE affects a bit in TCD. But, other writes to
+        // TCD require &amp;mut reference. Existence of &amp;mut reference blocks
+        // clear_complete calls.
+        </span><span class="self">self</span>.registers.CDNE.write(<span class="self">self</span>.index <span class="kw">as </span>u8);
     }
 
-    <span class="doccomment">/// Indicates if the DMA transfer has completed</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_complete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::read_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">CSR</span>, <span class="ident">DONE</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>)
+    <span class="doccomment">/// Indicates if the DMA channel is in an error state
+    </span><span class="kw">pub fn </span>is_error(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.registers.ERR.read() &amp; (<span class="number">1 </span>&lt;&lt; <span class="self">self</span>.index) != <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Clears the error flag
+    </span><span class="kw">pub fn </span>clear_error(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Immutable write OK. CERR affects a bit in ERR, which is
+        // not written to elsewhere.
+        </span><span class="self">self</span>.registers.CERR.write(<span class="self">self</span>.index <span class="kw">as </span>u8);
     }
 
-    <span class="doccomment">/// Clears completion indication</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_complete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Immutable write OK. CDNE affects a bit in TCD. But, other writes to</span>
-        <span class="comment">// TCD require &amp;mut reference. Existence of &amp;mut reference blocks</span>
-        <span class="comment">// clear_complete calls.</span>
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">CDNE</span>.<span class="ident">write</span>(<span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u8</span>);
+    <span class="doccomment">/// Indicates if this DMA channel is actively transferring data
+    </span><span class="kw">pub fn </span>is_active(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>tcd = <span class="self">self</span>.tcd();
+        <span class="macro">ral::read_reg!</span>(<span class="kw">crate</span>::ral::tcd, tcd, CSR, ACTIVE == <span class="number">1</span>)
     }
 
-    <span class="doccomment">/// Indicates if the DMA channel is in an error state</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">ERR</span>.<span class="ident">read</span>() <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">index</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    <span class="doccomment">/// Indicates if this DMA channel is enabled
+    </span><span class="kw">pub fn </span>is_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.registers.ERQ.read() &amp; (<span class="number">1 </span>&lt;&lt; <span class="self">self</span>.index) != <span class="number">0
+    </span>}
+
+    <span class="doccomment">/// Returns the value from the **global** error status register
+    ///
+    /// It may reflect the last channel that produced an error, and that
+    /// may not be related to this channel.
+    </span><span class="kw">pub fn </span>error_status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Error {
+        Error::new(<span class="self">self</span>.registers.ES.read())
     }
 
-    <span class="doccomment">/// Clears the error flag</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Immutable write OK. CERR affects a bit in ERR, which is</span>
-        <span class="comment">// not written to elsewhere.</span>
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">CERR</span>.<span class="ident">write</span>(<span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u8</span>);
-    }
-
-    <span class="doccomment">/// Indicates if this DMA channel is actively transferring data</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">tcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tcd</span>();
-        <span class="macro">ral::read_reg!</span>(<span class="kw">crate</span><span class="ident">::ral::tcd</span>, <span class="ident">tcd</span>, <span class="ident">CSR</span>, <span class="ident">ACTIVE</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>)
-    }
-
-    <span class="doccomment">/// Indicates if this DMA channel is enabled</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">ERQ</span>.<span class="ident">read</span>() <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">index</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    }
-
-    <span class="doccomment">/// Returns the value from the **global** error status register</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It may reflect the last channel that produced an error, and that</span>
-    <span class="doccomment">/// may not be related to this channel.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error_status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Error</span> {
-        <span class="ident">Error::new</span>(<span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">ES</span>.<span class="ident">read</span>())
-    }
-
-    <span class="doccomment">/// Start a DMA transfer</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `start()` should be used to request service from the DMA controller. It&#39;s</span>
-    <span class="doccomment">/// necessary for in-memory DMA transfers. Do not use it for hardware-initiated</span>
-    <span class="doccomment">/// DMA transfers. DMA transfers that involve hardware will rely on the hardware</span>
-    <span class="doccomment">/// to request DMA service.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Flag is automatically cleared by hardware after it&#39;s asserted.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// Immutable write OK. SSRT affects a bit in TCD. But, other writes to</span>
-        <span class="comment">// TCD require &amp;mut reference. Existence of &amp;mut reference blocks</span>
-        <span class="comment">// start calls.</span>
-        <span class="self">self</span>.<span class="ident">registers</span>.<span class="ident">SSRT</span>.<span class="ident">write</span>(<span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u8</span>);
+    <span class="doccomment">/// Start a DMA transfer
+    ///
+    /// `start()` should be used to request service from the DMA controller. It&#39;s
+    /// necessary for in-memory DMA transfers. Do not use it for hardware-initiated
+    /// DMA transfers. DMA transfers that involve hardware will rely on the hardware
+    /// to request DMA service.
+    ///
+    /// Flag is automatically cleared by hardware after it&#39;s asserted.
+    </span><span class="kw">pub fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Immutable write OK. SSRT affects a bit in TCD. But, other writes to
+        // TCD require &amp;mut reference. Existence of &amp;mut reference blocks
+        // start calls.
+        </span><span class="self">self</span>.registers.SSRT.write(<span class="self">self</span>.index <span class="kw">as </span>u8);
     }
 }
 
-<span class="comment">// It&#39;s OK to send a channel across an execution context.</span>
-<span class="comment">// They can&#39;t be cloned or copied, so there&#39;s no chance of</span>
-<span class="comment">// them being (mutably) shared.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Channel</span> {}
+<span class="comment">// It&#39;s OK to send a channel across an execution context.
+// They can&#39;t be cloned or copied, so there&#39;s no chance of
+// them being (mutably) shared.
+</span><span class="kw">unsafe impl </span>Send <span class="kw">for </span>Channel {}
 
-<span class="doccomment">/// DMAMUX channel configuration</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Configuration</span> {
-    <span class="doccomment">/// The DMAMUX channel is disabled</span>
-    <span class="ident">Off</span>,
-    <span class="doccomment">/// The DMAMUX is enabled, permitting hardware triggering.</span>
-    <span class="doccomment">/// See [`enable`](Configuration::enable) to enable</span>
-    <span class="doccomment">/// the channel without periodic triggering.</span>
-    <span class="ident">Enable</span> {
-        <span class="doccomment">/// The DMA channel source (slot number)</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// Specifies which DMA source is routed to the DMA channel.</span>
-        <span class="ident">source</span>: <span class="ident">u32</span>,
-        <span class="doccomment">/// Set the periodic triggering flag to schedule DMA transfers on PIT</span>
-        <span class="doccomment">/// timer scheduling.</span>
-        <span class="doccomment">///</span>
-        <span class="doccomment">/// `periodic` only works for the first four DMA channels, since</span>
-        <span class="doccomment">/// it corresponds to the PIT timers.</span>
-        <span class="ident">periodic</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// DMAMUX channel configuration
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>Configuration {
+    <span class="doccomment">/// The DMAMUX channel is disabled
+    </span>Off,
+    <span class="doccomment">/// The DMAMUX is enabled, permitting hardware triggering.
+    /// See [`enable`](Configuration::enable) to enable
+    /// the channel without periodic triggering.
+    </span>Enable {
+        <span class="doccomment">/// The DMA channel source (slot number)
+        ///
+        /// Specifies which DMA source is routed to the DMA channel.
+        </span>source: u32,
+        <span class="doccomment">/// Set the periodic triggering flag to schedule DMA transfers on PIT
+        /// timer scheduling.
+        ///
+        /// `periodic` only works for the first four DMA channels, since
+        /// it corresponds to the PIT timers.
+        </span>periodic: bool,
     },
-    <span class="doccomment">/// The DMAMUX is always on, and there&#39;s no need for software</span>
-    <span class="doccomment">/// or hardware activation</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use `AlwaysOn` for</span>
-    <span class="doccomment">/// - memory-to-memory transfers</span>
-    <span class="doccomment">/// - memory to external bus transfers</span>
-    <span class="ident">AlwaysOn</span>,
+    <span class="doccomment">/// The DMAMUX is always on, and there&#39;s no need for software
+    /// or hardware activation
+    ///
+    /// Use `AlwaysOn` for
+    /// - memory-to-memory transfers
+    /// - memory to external bus transfers
+    </span>AlwaysOn,
 }
 
-<span class="kw">impl</span> <span class="ident">Configuration</span> {
-    <span class="doccomment">/// Enable the channel without triggering</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Shorthand for `ChannelConfiguration::Enable { source, periodic: false }`.</span>
-    <span class="doccomment">/// Use `enable()` to avoid possible panics in</span>
-    <span class="doccomment">/// [`set_channel_configuration`](crate::channel::Channel::set_channel_configuration).</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">enable</span>(<span class="ident">source</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Configuration::Enable</span> {
-            <span class="ident">source</span>,
-            <span class="ident">periodic</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>Configuration {
+    <span class="doccomment">/// Enable the channel without triggering
+    ///
+    /// Shorthand for `ChannelConfiguration::Enable { source, periodic: false }`.
+    /// Use `enable()` to avoid possible panics in
+    /// [`set_channel_configuration`](crate::channel::Channel::set_channel_configuration).
+    </span><span class="kw">pub const fn </span>enable(source: u32) -&gt; <span class="self">Self </span>{
+        Configuration::Enable {
+            source,
+            periodic: <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="doccomment">/// Set a hardware peripheral as the source for a DMA transfer</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `hardware_source` is expected to be a pointer to a peripheral register that</span>
-<span class="doccomment">/// can provide DMA data. This function configures the DMA channel always read from</span>
-<span class="doccomment">/// this register.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Caller must ensure that `hardware_source` is valid for the lifetime of the transfer,</span>
-<span class="doccomment">/// and valid for all subsequent transfers performed by this DMA channel with this address.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_source_hardware</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="ident">chan</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>, <span class="ident">hardware_source</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">E</span>) {
-    <span class="ident">chan</span>.<span class="ident">set_source_address</span>(<span class="ident">hardware_source</span>);
-    <span class="ident">chan</span>.<span class="ident">set_source_offset</span>(<span class="number">0</span>);
-    <span class="ident">chan</span>.<span class="ident">set_source_attributes</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="number">0</span>);
-    <span class="ident">chan</span>.<span class="ident">set_source_last_address_adjustment</span>(<span class="number">0</span>);
+<span class="doccomment">/// Set a hardware peripheral as the source for a DMA transfer
+///
+/// `hardware_source` is expected to be a pointer to a peripheral register that
+/// can provide DMA data. This function configures the DMA channel always read from
+/// this register.
+///
+/// # Safety
+///
+/// Caller must ensure that `hardware_source` is valid for the lifetime of the transfer,
+/// and valid for all subsequent transfers performed by this DMA channel with this address.
+</span><span class="kw">pub unsafe fn </span>set_source_hardware&lt;E: Element&gt;(chan: <span class="kw-2">&amp;mut </span>Channel, hardware_source: <span class="kw-2">*const </span>E) {
+    chan.set_source_address(hardware_source);
+    chan.set_source_offset(<span class="number">0</span>);
+    chan.set_source_attributes::&lt;E&gt;(<span class="number">0</span>);
+    chan.set_source_last_address_adjustment(<span class="number">0</span>);
 }
 
-<span class="doccomment">/// Set a hardware peripheral as the destination for a DMA transfer</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `hardware_destination` is expected to point at a peripheral register that can</span>
-<span class="doccomment">/// receive DMA data. This function configures the DMA channel to always write to</span>
-<span class="doccomment">/// this register.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Caller must ensure that `hardware_destination` is valid for the lifetime of the transfer,</span>
-<span class="doccomment">/// and valid for all subsequent transfers performed by this DMA channel with this address.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_destination_hardware</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(
-    <span class="ident">chan</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>,
-    <span class="ident">hardware_destination</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">E</span>,
+<span class="doccomment">/// Set a hardware peripheral as the destination for a DMA transfer
+///
+/// `hardware_destination` is expected to point at a peripheral register that can
+/// receive DMA data. This function configures the DMA channel to always write to
+/// this register.
+///
+/// # Safety
+///
+/// Caller must ensure that `hardware_destination` is valid for the lifetime of the transfer,
+/// and valid for all subsequent transfers performed by this DMA channel with this address.
+</span><span class="kw">pub unsafe fn </span>set_destination_hardware&lt;E: Element&gt;(
+    chan: <span class="kw-2">&amp;mut </span>Channel,
+    hardware_destination: <span class="kw-2">*const </span>E,
 ) {
-    <span class="ident">chan</span>.<span class="ident">set_destination_address</span>(<span class="ident">hardware_destination</span>);
-    <span class="ident">chan</span>.<span class="ident">set_destination_offset</span>(<span class="number">0</span>);
-    <span class="ident">chan</span>.<span class="ident">set_destination_attributes</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="number">0</span>);
-    <span class="ident">chan</span>.<span class="ident">set_destination_last_address_adjustment</span>(<span class="number">0</span>);
+    chan.set_destination_address(hardware_destination);
+    chan.set_destination_offset(<span class="number">0</span>);
+    chan.set_destination_attributes::&lt;E&gt;(<span class="number">0</span>);
+    chan.set_destination_last_address_adjustment(<span class="number">0</span>);
 }
 
-<span class="doccomment">/// Set a linear buffer as the source for a DMA transfer</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When the transfer completes, the DMA channel will point at the</span>
-<span class="doccomment">/// start of the buffer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Caller must ensure that the source is valid for the lifetime of the transfer,</span>
-<span class="doccomment">/// and valid for all subsequent transfers performed by this DMA channel with this buffer.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_source_linear_buffer</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="ident">chan</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">E</span>]) {
-    <span class="ident">chan</span>.<span class="ident">set_source_address</span>(<span class="ident">source</span>.<span class="ident">as_ptr</span>());
-    <span class="ident">chan</span>.<span class="ident">set_source_offset</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">i16</span>);
-    <span class="ident">chan</span>.<span class="ident">set_source_attributes</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="number">0</span>);
-    <span class="ident">chan</span>.<span class="ident">set_source_last_address_adjustment</span>(
-        ((<span class="ident">source</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="ident">i32</span>).<span class="ident">wrapping_neg</span>(),
+<span class="doccomment">/// Set a linear buffer as the source for a DMA transfer
+///
+/// When the transfer completes, the DMA channel will point at the
+/// start of the buffer.
+///
+/// # Safety
+///
+/// Caller must ensure that the source is valid for the lifetime of the transfer,
+/// and valid for all subsequent transfers performed by this DMA channel with this buffer.
+</span><span class="kw">pub unsafe fn </span>set_source_linear_buffer&lt;E: Element&gt;(chan: <span class="kw-2">&amp;mut </span>Channel, source: <span class="kw-2">&amp;</span>[E]) {
+    chan.set_source_address(source.as_ptr());
+    chan.set_source_offset(core::mem::size_of::&lt;E&gt;() <span class="kw">as </span>i16);
+    chan.set_source_attributes::&lt;E&gt;(<span class="number">0</span>);
+    chan.set_source_last_address_adjustment(
+        ((source.len() * core::mem::size_of::&lt;E&gt;()) <span class="kw">as </span>i32).wrapping_neg(),
     );
 }
 
-<span class="doccomment">/// Set a linear buffer as the destination for a DMA transfer</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When the transfer completes, the DMA channel will point at the</span>
-<span class="doccomment">/// start of the buffer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Caller must ensure that the destination is valid for the lifetime of the transfer,</span>
-<span class="doccomment">/// and valid for all subsequent transfers performed by this DMA channel with this buffer.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_destination_linear_buffer</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="ident">chan</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>, <span class="ident">destination</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">E</span>]) {
-    <span class="ident">chan</span>.<span class="ident">set_destination_address</span>(<span class="ident">destination</span>.<span class="ident">as_ptr</span>());
-    <span class="ident">chan</span>.<span class="ident">set_destination_offset</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">i16</span>);
-    <span class="ident">chan</span>.<span class="ident">set_destination_attributes</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="number">0</span>);
-    <span class="ident">chan</span>.<span class="ident">set_destination_last_address_adjustment</span>(
-        ((<span class="ident">destination</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="ident">i32</span>).<span class="ident">wrapping_neg</span>(),
+<span class="doccomment">/// Set a linear buffer as the destination for a DMA transfer
+///
+/// When the transfer completes, the DMA channel will point at the
+/// start of the buffer.
+///
+/// # Safety
+///
+/// Caller must ensure that the destination is valid for the lifetime of the transfer,
+/// and valid for all subsequent transfers performed by this DMA channel with this buffer.
+</span><span class="kw">pub unsafe fn </span>set_destination_linear_buffer&lt;E: Element&gt;(chan: <span class="kw-2">&amp;mut </span>Channel, destination: <span class="kw-2">&amp;mut </span>[E]) {
+    chan.set_destination_address(destination.as_ptr());
+    chan.set_destination_offset(core::mem::size_of::&lt;E&gt;() <span class="kw">as </span>i16);
+    chan.set_destination_attributes::&lt;E&gt;(<span class="number">0</span>);
+    chan.set_destination_last_address_adjustment(
+        ((destination.len() * core::mem::size_of::&lt;E&gt;()) <span class="kw">as </span>i32).wrapping_neg(),
     );
 }
 
-<span class="doccomment">/// Assert properties about the circular buffer</span>
-<span class="kw">fn</span> <span class="ident">circular_buffer_asserts</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">E</span>]) {
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">len</span>();
+<span class="doccomment">/// Assert properties about the circular buffer
+</span><span class="kw">fn </span>circular_buffer_asserts&lt;E&gt;(buffer: <span class="kw-2">&amp;</span>[E]) {
+    <span class="kw">let </span>len = buffer.len();
     <span class="macro">assert!</span>(
-        <span class="ident">len</span>.<span class="ident">is_power_of_two</span>(),
-        <span class="string">&quot;DMA circular buffer size is not power of two&quot;</span>
-    );
-    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">as_ptr</span>();
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">*</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>();
+        len.is_power_of_two(),
+        <span class="string">&quot;DMA circular buffer size is not power of two&quot;
+    </span>);
+    <span class="kw">let </span>start = buffer.as_ptr();
+    <span class="kw">let </span>size = len * core::mem::size_of::&lt;E&gt;();
     <span class="macro">assert!</span>(
-        (<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>,
-        <span class="string">&quot;DMA circular buffer is not properly aligned&quot;</span>
-    );
+        (start <span class="kw">as </span>usize) % size == <span class="number">0</span>,
+        <span class="string">&quot;DMA circular buffer is not properly aligned&quot;
+    </span>);
 }
 
-<span class="doccomment">/// Compute the circular buffer modulo value</span>
-<span class="kw">fn</span> <span class="ident">circular_buffer_modulo</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">E</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-    <span class="number">31</span> <span class="op">-</span> (<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()).<span class="ident">leading_zeros</span>()
+<span class="doccomment">/// Compute the circular buffer modulo value
+</span><span class="kw">fn </span>circular_buffer_modulo&lt;E&gt;(buffer: <span class="kw-2">&amp;</span>[E]) -&gt; u32 {
+    <span class="number">31 </span>- (buffer.len() * core::mem::size_of::&lt;E&gt;()).leading_zeros()
 }
 
-<span class="doccomment">/// Set a circular buffer as the source for a DMA transfer</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When the transfer completes, the DMA channel remain at the</span>
-<span class="doccomment">/// next element in the circular buffer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Caller must ensure that the source is valid for the lifetime of the transfer,</span>
-<span class="doccomment">/// and for all subsequent transfers performed by this DMA channel with this buffer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Panics if</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - the capacity is not a power of two</span>
-<span class="doccomment">/// - the alignment is not a multiple of the buffer&#39;s size in bytes</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_source_circular_buffer</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(<span class="ident">chan</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span>[<span class="ident">E</span>]) {
-    <span class="ident">circular_buffer_asserts</span>(<span class="ident">source</span>);
-    <span class="kw">let</span> <span class="ident">modulo</span> <span class="op">=</span> <span class="ident">circular_buffer_modulo</span>(<span class="ident">source</span>);
+<span class="doccomment">/// Set a circular buffer as the source for a DMA transfer
+///
+/// When the transfer completes, the DMA channel remain at the
+/// next element in the circular buffer.
+///
+/// # Safety
+///
+/// Caller must ensure that the source is valid for the lifetime of the transfer,
+/// and for all subsequent transfers performed by this DMA channel with this buffer.
+///
+/// # Panics
+///
+/// Panics if
+///
+/// - the capacity is not a power of two
+/// - the alignment is not a multiple of the buffer&#39;s size in bytes
+</span><span class="kw">pub unsafe fn </span>set_source_circular_buffer&lt;E: Element&gt;(chan: <span class="kw-2">&amp;mut </span>Channel, source: <span class="kw-2">&amp;</span>[E]) {
+    circular_buffer_asserts(source);
+    <span class="kw">let </span>modulo = circular_buffer_modulo(source);
 
-    <span class="ident">chan</span>.<span class="ident">set_source_address</span>(<span class="ident">source</span>.<span class="ident">as_ptr</span>());
-    <span class="ident">chan</span>.<span class="ident">set_source_offset</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">i16</span>);
-    <span class="ident">chan</span>.<span class="ident">set_source_attributes</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">modulo</span> <span class="kw">as</span> <span class="ident">u8</span>);
-    <span class="ident">chan</span>.<span class="ident">set_source_last_address_adjustment</span>(<span class="number">0</span>);
+    chan.set_source_address(source.as_ptr());
+    chan.set_source_offset(core::mem::size_of::&lt;E&gt;() <span class="kw">as </span>i16);
+    chan.set_source_attributes::&lt;E&gt;(modulo <span class="kw">as </span>u8);
+    chan.set_source_last_address_adjustment(<span class="number">0</span>);
 }
 
-<span class="doccomment">/// Set a circular buffer as the destination for a DMA transfer</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When the transfer completes, the DMA channel remain at the</span>
-<span class="doccomment">/// next element in the circular buffer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Caller must ensure that the destination is valid for the lifetime of the transfer,</span>
-<span class="doccomment">/// and for all subsequent transfers performed by this DMA channel with this buffer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Panics</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Panics if</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - the capacity is not a power of two</span>
-<span class="doccomment">/// - the alignment is not a multiple of the buffer&#39;s size in bytes</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_destination_circular_buffer</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Element</span><span class="op">&gt;</span>(
-    <span class="ident">chan</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Channel</span>,
-    <span class="ident">destination</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">E</span>],
+<span class="doccomment">/// Set a circular buffer as the destination for a DMA transfer
+///
+/// When the transfer completes, the DMA channel remain at the
+/// next element in the circular buffer.
+///
+/// # Safety
+///
+/// Caller must ensure that the destination is valid for the lifetime of the transfer,
+/// and for all subsequent transfers performed by this DMA channel with this buffer.
+///
+/// # Panics
+///
+/// Panics if
+///
+/// - the capacity is not a power of two
+/// - the alignment is not a multiple of the buffer&#39;s size in bytes
+</span><span class="kw">pub unsafe fn </span>set_destination_circular_buffer&lt;E: Element&gt;(
+    chan: <span class="kw-2">&amp;mut </span>Channel,
+    destination: <span class="kw-2">&amp;mut </span>[E],
 ) {
-    <span class="ident">circular_buffer_asserts</span>(<span class="ident">destination</span>);
-    <span class="kw">let</span> <span class="ident">modulo</span> <span class="op">=</span> <span class="ident">circular_buffer_modulo</span>(<span class="ident">destination</span>);
+    circular_buffer_asserts(destination);
+    <span class="kw">let </span>modulo = circular_buffer_modulo(destination);
 
-    <span class="ident">chan</span>.<span class="ident">set_destination_address</span>(<span class="ident">destination</span>.<span class="ident">as_ptr</span>());
-    <span class="ident">chan</span>.<span class="ident">set_destination_offset</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">i16</span>);
-    <span class="ident">chan</span>.<span class="ident">set_destination_attributes</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">modulo</span> <span class="kw">as</span> <span class="ident">u8</span>);
-    <span class="ident">chan</span>.<span class="ident">set_destination_last_address_adjustment</span>(<span class="number">0</span>);
+    chan.set_destination_address(destination.as_ptr());
+    chan.set_destination_offset(core::mem::size_of::&lt;E&gt;() <span class="kw">as </span>i16);
+    chan.set_destination_attributes::&lt;E&gt;(modulo <span class="kw">as </span>u8);
+    chan.set_destination_last_address_adjustment(<span class="number">0</span>);
 }
-</pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="imxrt_dma" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0 (69f9c33d7 2022-12-12)" ></div></body></html>
