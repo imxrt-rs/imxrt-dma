@@ -27,7 +27,7 @@ use ral_registers::{RORegister, RWRegister, WORegister};
 pub(super) struct Static<T>(pub(super) *const T);
 impl<T> core::ops::Deref for Static<T> {
     type Target = T;
-    fn deref(&self) -> &'static Self::Target {
+    fn deref(&self) -> &Self::Target {
         // Safety: pointer points to static memory (peripheral memory)
         unsafe { &*self.0 }
     }
