@@ -34,7 +34,7 @@ impl<T> core::ops::Deref for Static<T> {
 }
 impl<T> Clone for Static<T> {
     fn clone(&self) -> Self {
-        Static(self.0)
+        *self
     }
 }
 impl<T> Copy for Static<T> {}

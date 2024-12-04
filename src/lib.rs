@@ -41,10 +41,10 @@
 //!
 //! - [`memcpy`](crate::memcpy::memcpy) for memory copies.
 //! - [`write`](crate::peripheral::write) to transmit data from memory to
-//! a peripheral.
+//!   a peripheral.
 //! - [`read`](crate::peripheral::read) to receive data from a peripheral.
 //! - [`full_duplex`](crate::peripheral::full_duplex) to read / write with a
-//! peripheral using a single buffer.
+//!   peripheral using a single buffer.
 //!
 //! Peripheral transfers depends on a peripheral's DMA support. These are signaled
 //! through various [`peripheral`](crate::peripheral) traits.

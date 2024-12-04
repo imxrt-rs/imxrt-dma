@@ -505,9 +505,7 @@ pub unsafe fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &
     chan.set_source_address(source.as_ptr());
     chan.set_source_offset(core::mem::size_of::<E>() as i16);
     chan.set_source_attributes::<E>(0);
-    chan.set_source_last_address_adjustment(
-        ((source.len() * core::mem::size_of::<E>()) as i32).wrapping_neg(),
-    );
+    chan.set_source_last_address_adjustment((core::mem::size_of_val(source) as i32).wrapping_neg());
 }
 
 /// Set a linear buffer as the destination for a DMA transfer
@@ -524,7 +522,7 @@ pub unsafe fn set_destination_linear_buffer<E: Element>(chan: &mut Channel, dest
     chan.set_destination_offset(core::mem::size_of::<E>() as i16);
     chan.set_destination_attributes::<E>(0);
     chan.set_destination_last_address_adjustment(
-        ((destination.len() * core::mem::size_of::<E>()) as i32).wrapping_neg(),
+        (core::mem::size_of_val(destination) as i32).wrapping_neg(),
     );
 }
 
@@ -536,7 +534,7 @@ fn circular_buffer_asserts<E>(buffer: &[E]) {
         "DMA circular buffer size is not power of two"
     );
     let start = buffer.as_ptr();
-    let size = len * core::mem::size_of::<E>();
+    let size = core::mem::size_of_val(buffer);
     assert!(
         (start as usize) % size == 0,
         "DMA circular buffer is not properly aligned"
@@ -545,7 +543,7 @@ fn circular_buffer_asserts<E>(buffer: &[E]) {
 
 /// Compute the circular buffer modulo value
 fn circular_buffer_modulo<E>(buffer: &[E]) -> u32 {
-    31 - (buffer.len() * core::mem::size_of::<E>()).leading_zeros()
+    31 - core::mem::size_of_val(buffer).leading_zeros()
 }
 
 /// Set a circular buffer as the source for a DMA transfer
