@@ -7,8 +7,7 @@ DMA driver for i.MX RT microcontrollers.
 
 [main-api-docs]: https://imxrt-rs.github.io/imxrt-dma/
 
-See the API docs for more information. To try examples on hardware, see the
-examples directory.
+See the API docs for more information.
 
 License
 -------
