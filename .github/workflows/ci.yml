@@ -8,7 +8,7 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - run: rustup toolchain install stable --no-self-update --profile minimal --component rustfmt
     - name: Check library formatting
       run: cargo fmt --check --all
@@ -17,7 +17,7 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - run: rustup toolchain install stable --no-self-update --profile minimal --component clippy
     - name: Lint the library
       run: cargo clippy -- -D warnings
@@ -26,7 +26,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - run: rustup toolchain install stable --no-self-update --profile minimal
     - name: Run unit and documentation tests
       run: cargo test
@@ -37,7 +37,7 @@ jobs:
       RUSTDOCFLAGS: -D warnings
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - run: rustup toolchain install stable --no-self-update --profile minimal
     - name: Check documentation and doclinks
       run: cargo rustdoc
