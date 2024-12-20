@@ -356,7 +356,7 @@ pub unsafe trait Bidirectional<E: Element>: Source<E> + Destination<E> {}
 
 /// A full-duplex DMA transfer from a single buffer
 ///
-/// `FullDuplex` only works with [`Bidirectional`](crate::peripheral::Bidirectional)
+/// `FullDuplex` only works with [`Bidirectional`]
 /// peripherals. The transfer acts on a single buffer, sending and receiving data
 /// element by element. It yields when all elements are sent and received.
 ///

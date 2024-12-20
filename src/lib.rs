@@ -11,7 +11,7 @@
 //!
 //! # Getting started
 //!
-//! To allocate a [`Dma`](crate::Dma) driver, you'll need to know
+//! To allocate a [`Dma`] driver, you'll need to know
 //!
 //! 1. the location of the DMA controller registers.
 //! 2. the location of the DMAMUX registers.
@@ -47,9 +47,9 @@
 //!   peripheral using a single buffer.
 //!
 //! Peripheral transfers depends on a peripheral's DMA support. These are signaled
-//! through various [`peripheral`](crate::peripheral) traits.
+//! through various [`peripheral`] traits.
 //!
-//! For a lower-level API, use the [`channel`](crate::channel) objects and helper
+//! For a lower-level API, use the [`channel`] objects and helper
 //! functions.
 //!
 //! ### License

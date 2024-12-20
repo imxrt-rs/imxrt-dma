@@ -15,7 +15,7 @@ use core::{
 /// A memcpy operation
 ///
 /// `Memcpy` yields when it's moved the minimum amount of elements between two linear
-/// buffers. Use the [`memcpy`](crate::memcpy::memcpy) function to define the transfer.
+/// buffers. Use the [`memcpy`] function to define the transfer.
 pub struct Memcpy<'a, E> {
     transfer: Transfer<'a>,
     channel: &'a Channel,
