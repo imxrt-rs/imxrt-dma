@@ -11,12 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - uses: actions-rs/toolchain@v1
-      name: Install toolchain
-      with:
-        target: thumbv7em-none-eabihf
-        override: true
-        toolchain: stable
+    - run: rustup toolchain install stable --no-self-update --profile minimal --target thumbv7em-none-eabihf
 
     - name: Generate docs
       run: cargo rustdoc --target thumbv7em-none-eabihf
