@@ -10,7 +10,7 @@ use core::{
     task::{Context, Poll, Waker},
 };
 
-use cortex_m::interrupt::{self, Mutex};
+use critical_section::Mutex;
 
 impl<const CHANNELS: usize> super::Dma<CHANNELS> {
     /// Handle a DMA interrupt
@@ -54,7 +54,7 @@ impl<const CHANNELS: usize> super::Dma<CHANNELS> {
         }
 
         if channel.is_complete() | channel.is_error() {
-            interrupt::free(|cs| {
+            critical_section::with(|cs| {
                 let waker = self.wakers[channel.channel()].borrow(cs);
                 let mut waker = waker.borrow_mut();
                 if let Some(waker) = waker.take() {
@@ -133,7 +133,7 @@ impl<'a> Transfer<'a> {
 impl Future for Transfer<'_> {
     type Output = Result<(), Error>;
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        interrupt::free(|cs| {
+        critical_section::with(|cs| {
             let waker = self.channel.waker.borrow(cs);
             let mut waker = waker.borrow_mut();
             *waker = Some(cx.waker().clone());
@@ -166,7 +166,7 @@ impl Drop for Transfer<'_> {
         self.channel.disable();
         self.channel.clear_complete();
         self.channel.clear_error();
-        interrupt::free(|cs| {
+        critical_section::with(|cs| {
             let waker = self.channel.waker.borrow(cs);
             let mut waker = waker.borrow_mut();
             *waker = None;

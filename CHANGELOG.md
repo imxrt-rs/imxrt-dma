@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Update package to Rust 2024.
+- Use `critical-section` instead of `cortex-m` for the critical section implementation.
 
 ## [0.1.1] 2023-01-12
 

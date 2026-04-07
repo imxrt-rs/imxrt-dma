@@ -12,7 +12,7 @@ categories = ["embedded", "no-std"]
 repository.workspace = true
 
 [dependencies]
-cortex-m = "0.7.2"
+critical-section = "1.2"
 ral-registers = "0.1"
 
 [workspace.package]
