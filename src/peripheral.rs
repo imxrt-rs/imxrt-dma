@@ -8,8 +8,8 @@
 //! Otherwise, you can poll the future in a loop.
 
 use super::{
-    channel::{self, Channel, Configuration},
     Element, Error, Transfer,
+    channel::{self, Channel, Configuration},
 };
 
 use core::{

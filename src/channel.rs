@@ -8,9 +8,9 @@
 //! enabled.
 
 use crate::{
-    element::Element,
-    ral::{self, dma, dmamux, tcd::BandwidthControl, Static},
     Error,
+    element::Element,
+    ral::{self, Static, dma, dmamux, tcd::BandwidthControl},
 };
 
 impl<const CHANNELS: usize> super::Dma<CHANNELS> {
@@ -465,10 +465,12 @@ impl Configuration {
 /// Caller must ensure that `hardware_source` is valid for the lifetime of the transfer,
 /// and valid for all subsequent transfers performed by this DMA channel with this address.
 pub unsafe fn set_source_hardware<E: Element>(chan: &mut Channel, hardware_source: *const E) {
-    chan.set_source_address(hardware_source);
-    chan.set_source_offset(0);
-    chan.set_source_attributes::<E>(0);
-    chan.set_source_last_address_adjustment(0);
+    unsafe {
+        chan.set_source_address(hardware_source);
+        chan.set_source_offset(0);
+        chan.set_source_attributes::<E>(0);
+        chan.set_source_last_address_adjustment(0);
+    }
 }
 
 /// Set a hardware peripheral as the destination for a DMA transfer
@@ -485,10 +487,12 @@ pub unsafe fn set_destination_hardware<E: Element>(
     chan: &mut Channel,
     hardware_destination: *const E,
 ) {
-    chan.set_destination_address(hardware_destination);
-    chan.set_destination_offset(0);
-    chan.set_destination_attributes::<E>(0);
-    chan.set_destination_last_address_adjustment(0);
+    unsafe {
+        chan.set_destination_address(hardware_destination);
+        chan.set_destination_offset(0);
+        chan.set_destination_attributes::<E>(0);
+        chan.set_destination_last_address_adjustment(0);
+    }
 }
 
 /// Set a linear buffer as the source for a DMA transfer
@@ -501,10 +505,14 @@ pub unsafe fn set_destination_hardware<E: Element>(
 /// Caller must ensure that the source is valid for the lifetime of the transfer,
 /// and valid for all subsequent transfers performed by this DMA channel with this buffer.
 pub unsafe fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &[E]) {
-    chan.set_source_address(source.as_ptr());
-    chan.set_source_offset(core::mem::size_of::<E>() as i16);
-    chan.set_source_attributes::<E>(0);
-    chan.set_source_last_address_adjustment((core::mem::size_of_val(source) as i32).wrapping_neg());
+    unsafe {
+        chan.set_source_address(source.as_ptr());
+        chan.set_source_offset(core::mem::size_of::<E>() as i16);
+        chan.set_source_attributes::<E>(0);
+        chan.set_source_last_address_adjustment(
+            (core::mem::size_of_val(source) as i32).wrapping_neg(),
+        );
+    }
 }
 
 /// Set a linear buffer as the destination for a DMA transfer
@@ -517,12 +525,14 @@ pub unsafe fn set_source_linear_buffer<E: Element>(chan: &mut Channel, source: &
 /// Caller must ensure that the destination is valid for the lifetime of the transfer,
 /// and valid for all subsequent transfers performed by this DMA channel with this buffer.
 pub unsafe fn set_destination_linear_buffer<E: Element>(chan: &mut Channel, destination: &mut [E]) {
-    chan.set_destination_address(destination.as_ptr());
-    chan.set_destination_offset(core::mem::size_of::<E>() as i16);
-    chan.set_destination_attributes::<E>(0);
-    chan.set_destination_last_address_adjustment(
-        (core::mem::size_of_val(destination) as i32).wrapping_neg(),
-    );
+    unsafe {
+        chan.set_destination_address(destination.as_ptr());
+        chan.set_destination_offset(core::mem::size_of::<E>() as i16);
+        chan.set_destination_attributes::<E>(0);
+        chan.set_destination_last_address_adjustment(
+            (core::mem::size_of_val(destination) as i32).wrapping_neg(),
+        );
+    }
 }
 
 /// Assert properties about the circular buffer
@@ -535,7 +545,7 @@ fn circular_buffer_asserts<E>(buffer: &[E]) {
     let start = buffer.as_ptr();
     let size = core::mem::size_of_val(buffer);
     assert!(
-        (start as usize) % size == 0,
+        (start as usize).is_multiple_of(size),
         "DMA circular buffer is not properly aligned"
     );
 }
@@ -565,10 +575,12 @@ pub unsafe fn set_source_circular_buffer<E: Element>(chan: &mut Channel, source:
     circular_buffer_asserts(source);
     let modulo = circular_buffer_modulo(source);
 
-    chan.set_source_address(source.as_ptr());
-    chan.set_source_offset(core::mem::size_of::<E>() as i16);
-    chan.set_source_attributes::<E>(modulo as u8);
-    chan.set_source_last_address_adjustment(0);
+    unsafe {
+        chan.set_source_address(source.as_ptr());
+        chan.set_source_offset(core::mem::size_of::<E>() as i16);
+        chan.set_source_attributes::<E>(modulo as u8);
+        chan.set_source_last_address_adjustment(0);
+    }
 }
 
 /// Set a circular buffer as the destination for a DMA transfer
@@ -594,8 +606,10 @@ pub unsafe fn set_destination_circular_buffer<E: Element>(
     circular_buffer_asserts(destination);
     let modulo = circular_buffer_modulo(destination);
 
-    chan.set_destination_address(destination.as_ptr());
-    chan.set_destination_offset(core::mem::size_of::<E>() as i16);
-    chan.set_destination_attributes::<E>(modulo as u8);
-    chan.set_destination_last_address_adjustment(0);
+    unsafe {
+        chan.set_destination_address(destination.as_ptr());
+        chan.set_destination_offset(core::mem::size_of::<E>() as i16);
+        chan.set_destination_attributes::<E>(modulo as u8);
+        chan.set_destination_last_address_adjustment(0);
+    }
 }

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Update package to Rust 2024.
+
 ## [0.1.1] 2023-01-12
 
 Fix an incorrect lifetime caught by `implied_bounds_entailment`.

@@ -128,4 +128,4 @@ impl<const CHANNELS: usize> Dma<CHANNELS> {
     }
 }
 
-use interrupt::{SharedWaker, NO_WAKER};
+use interrupt::{NO_WAKER, SharedWaker};

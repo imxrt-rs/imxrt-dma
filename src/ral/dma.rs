@@ -1,6 +1,6 @@
 //! DMA register blocks and fields
 
-use super::{tcd, RORegister, RWRegister, WORegister};
+use super::{RORegister, RWRegister, WORegister, tcd};
 
 use core::ops::Index;
 

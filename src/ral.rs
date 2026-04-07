@@ -15,8 +15,8 @@ pub mod dma;
 pub mod dmamux;
 pub mod tcd;
 
-pub use ral_registers::{modify_reg, read_reg, write_reg};
 use ral_registers::{RORegister, RWRegister, WORegister};
+pub use ral_registers::{modify_reg, read_reg, write_reg};
 
 //
 // Helper types for static memory

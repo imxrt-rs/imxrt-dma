@@ -1,9 +1,9 @@
 //! DMA-powered memcpy
 
 use crate::{
+    Element, Error,
     channel::{self, Channel},
     interrupt::Transfer,
-    Element, Error,
 };
 
 use core::{

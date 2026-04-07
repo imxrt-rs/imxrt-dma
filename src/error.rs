@@ -105,21 +105,22 @@ impl Debug for Error {
 
 impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-             "DMA_ES: VLD {vld} ECX {ecx} GPE {gpe} CPE {cpe} ERRCHN {errchn} SAE {sae} SOE {soe} DAE {dae} DOE {doe} NCE {nce} SGE {sge} SBE {sbe} DBE {dbe}",
-             vld = self.is_valid() as u32,
-             ecx = self.is_cancelled() as u32,
-             gpe = self.is_group_priority() as u32,
-             cpe = self.is_channel_priority() as u32,
-             errchn = self.channel_number(),
-             sae = self.is_source_address() as u32,
-             soe = self.is_source_offset() as u32,
-             dae = self.is_destination_address() as u32,
-             doe = self.is_destination_offset() as u32,
-             nce = self.is_loop_configuration() as u32,
-             sge = self.is_scatter_gather() as u32,
-             sbe = self.is_source_bus() as u32,
-             dbe = self.is_destination_bus() as u32,
-         )
+        write!(
+            f,
+            "DMA_ES: VLD {vld} ECX {ecx} GPE {gpe} CPE {cpe} ERRCHN {errchn} SAE {sae} SOE {soe} DAE {dae} DOE {doe} NCE {nce} SGE {sge} SBE {sbe} DBE {dbe}",
+            vld = self.is_valid() as u32,
+            ecx = self.is_cancelled() as u32,
+            gpe = self.is_group_priority() as u32,
+            cpe = self.is_channel_priority() as u32,
+            errchn = self.channel_number(),
+            sae = self.is_source_address() as u32,
+            soe = self.is_source_offset() as u32,
+            dae = self.is_destination_address() as u32,
+            doe = self.is_destination_offset() as u32,
+            nce = self.is_loop_configuration() as u32,
+            sge = self.is_scatter_gather() as u32,
+            sbe = self.is_source_bus() as u32,
+            dbe = self.is_destination_bus() as u32,
+        )
     }
 }

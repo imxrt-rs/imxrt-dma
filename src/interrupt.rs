@@ -1,6 +1,6 @@
 //! DMA interrupt support
 
-use crate::{channel::Channel, Error};
+use crate::{Error, channel::Channel};
 use core::{
     cell::RefCell,
     future::Future,
@@ -48,7 +48,7 @@ impl<const CHANNELS: usize> super::Dma<CHANNELS> {
     /// Panics if `channel` is greater than or equal to the maximum number of channels.
     #[inline(always)]
     pub unsafe fn on_interrupt(&'static self, channel: usize) {
-        let channel = self.channel(channel);
+        let channel = unsafe { self.channel(channel) };
         if channel.is_interrupt() {
             channel.clear_interrupt();
         }
