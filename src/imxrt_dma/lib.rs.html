@@ -1,263 +1,132 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="imxrt_dma" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">imxrt_dma/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
-<a href="#1" id="1">1</a>
-<a href="#2" id="2">2</a>
-<a href="#3" id="3">3</a>
-<a href="#4" id="4">4</a>
-<a href="#5" id="5">5</a>
-<a href="#6" id="6">6</a>
-<a href="#7" id="7">7</a>
-<a href="#8" id="8">8</a>
-<a href="#9" id="9">9</a>
-<a href="#10" id="10">10</a>
-<a href="#11" id="11">11</a>
-<a href="#12" id="12">12</a>
-<a href="#13" id="13">13</a>
-<a href="#14" id="14">14</a>
-<a href="#15" id="15">15</a>
-<a href="#16" id="16">16</a>
-<a href="#17" id="17">17</a>
-<a href="#18" id="18">18</a>
-<a href="#19" id="19">19</a>
-<a href="#20" id="20">20</a>
-<a href="#21" id="21">21</a>
-<a href="#22" id="22">22</a>
-<a href="#23" id="23">23</a>
-<a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
-<a href="#26" id="26">26</a>
-<a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a>
-<a href="#33" id="33">33</a>
-<a href="#34" id="34">34</a>
-<a href="#35" id="35">35</a>
-<a href="#36" id="36">36</a>
-<a href="#37" id="37">37</a>
-<a href="#38" id="38">38</a>
-<a href="#39" id="39">39</a>
-<a href="#40" id="40">40</a>
-<a href="#41" id="41">41</a>
-<a href="#42" id="42">42</a>
-<a href="#43" id="43">43</a>
-<a href="#44" id="44">44</a>
-<a href="#45" id="45">45</a>
-<a href="#46" id="46">46</a>
-<a href="#47" id="47">47</a>
-<a href="#48" id="48">48</a>
-<a href="#49" id="49">49</a>
-<a href="#50" id="50">50</a>
-<a href="#51" id="51">51</a>
-<a href="#52" id="52">52</a>
-<a href="#53" id="53">53</a>
-<a href="#54" id="54">54</a>
-<a href="#55" id="55">55</a>
-<a href="#56" id="56">56</a>
-<a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
-<a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a>
-<a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a></pre></div><pre class="rust"><code><span class="doccomment">//! Direct Memory Access (DMA) driver for i.MX RT processors.
-//!
-//! `imxrt-dma` provides
-//!
-//! - an unsafe API for defining and scheduling transfers with DMA `Channel`s.
-//! - safe DMA futures for memcpy, peripheral-to-memory, and memory-to-peripheral
-//!   transfers.
-//!
-//! This DMA driver may be re-exported from a hardware abstraction layer
-//! (HAL). If it is, you should use the safer APIs provided by your HAL.
-//!
-//! # Getting started
-//!
-//! To allocate a [`Dma`] driver, you'll need to know
-//!
-//! 1. the location of the DMA controller registers.
-//! 2. the location of the DMAMUX registers.
-//! 3. the number of DMA channels supported by your chip.
-//!
-//! These parameters depend on the i.MX RT chip you're targeting. If you're
-//! already using [`imxrt-ral`](https://docs.rs/imxrt-ral), consider using the
-//! `DMA` and `DMAMUX` constants for the addresses. You're always responsible
-//! for configuring the number of DMA channels.
-//!
-//! With those three parameters, assign a `Dma` to a static. Then, use that
-//! object to create DMA [`Channel`](crate::channel::Channel)s.
-//!
-//! ```
-//! use imxrt_dma::Dma;
-//! # const DMA_PTR: *const () = core::ptr::null() as _;
-//! # const DMAMUX_PTR: *const () = core::ptr::null() as  _;
-//!
-//! // Safety: addresses and channel count are valid for this target.
-//! static DMA: Dma&lt;32&gt; = unsafe { Dma::new(DMA_PTR, DMAMUX_PTR) };
-//!
-//! // Safety: we only allocate one DMA channel 7 object.
-//! let mut channel = unsafe { DMA.channel(7) };
-//! ```
-//!
-//! Once you have a channel, you can use the higher-level DMA APIs, like
-//!
-//! - [`memcpy`](crate::memcpy::memcpy) for memory copies.
-//! - [`write`](crate::peripheral::write) to transmit data from memory to
-//!   a peripheral.
-//! - [`read`](crate::peripheral::read) to receive data from a peripheral.
-//! - [`full_duplex`](crate::peripheral::full_duplex) to read / write with a
-//!   peripheral using a single buffer.
-//!
-//! Peripheral transfers depends on a peripheral's DMA support. These are signaled
-//! through various [`peripheral`] traits.
-//!
-//! For a lower-level API, use the [`channel`] objects and helper
-//! functions.
-//!
-//! ### License
-//!
-//! Licensed under either of
-//!
-//! - [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](./LICENSE-APACHE))
-//! - [MIT License](http://opensource.org/licenses/MIT) ([LICENSE-MIT](./LICENSE-MIT))
-//!
-//! at your option.
-//!
-//! Unless you explicitly state otherwise, any contribution intentionally submitted
-//! for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
-//! dual licensed as above, without any additional terms or conditions.
-
-</span><span class="attr">#![no_std]
-
-</span><span class="kw">pub mod </span>channel;
-<span class="kw">mod </span>element;
-<span class="kw">mod </span>error;
-<span class="kw">mod </span>interrupt;
-<span class="kw">pub mod </span>memcpy;
-<span class="kw">pub mod </span>peripheral;
-<span class="kw">mod </span>ral;
-
-<span class="kw">pub use </span>element::Element;
-<span class="kw">pub use </span>error::Error;
-<span class="kw">pub use </span>interrupt::Transfer;
-<span class="kw">pub use </span>ral::tcd::BandwidthControl;
-
-<span class="doccomment">/// A DMA result
-</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = core::result::Result&lt;T, Error&gt;;
-
-<span class="doccomment">/// A DMA driver.
-///
-/// This DMA driver manages the DMA controller and the multiplexer.
-/// It's configured with pointers to both peripherals.
-///
-/// `Dma` allocates [`Channel`](channel::Channel)s. `Channel` provides
-/// the interface for scheduling transfers.
-</span><span class="kw">pub struct </span>Dma&lt;<span class="kw">const </span>CHANNELS: usize&gt; {
-    controller: ral::Static&lt;ral::dma::RegisterBlock&gt;,
-    multiplexer: ral::Static&lt;ral::dmamux::RegisterBlock&gt;,
-    wakers: [SharedWaker; CHANNELS],
-}
-
-<span class="comment">// Safety: OK to allocate a DMA driver in a static context.
-</span><span class="kw">unsafe impl</span>&lt;<span class="kw">const </span>CHANNELS: usize&gt; Sync <span class="kw">for </span>Dma&lt;CHANNELS&gt; {}
-
-<span class="kw">impl</span>&lt;<span class="kw">const </span>CHANNELS: usize&gt; Dma&lt;CHANNELS&gt; {
-    <span class="doccomment">/// Create the DMA driver.
-    ///
-    /// Note that this can evaluate at compile time. Consider using this to
-    /// expose a `Dma` through your higher-level API that you can use to
-    /// allocate DMA channels.
-    ///
-    /// `CHANNELS` specifies the total number of channels supported by the DMA
-    /// controller. It's referenced when allocating channels.
-    ///
-    /// # Safety
-    ///
-    /// Caller must make sure that `controller` is a pointer to the start of the
-    /// DMA controller register block. Caller must also make sure that
-    /// `multiplexer` is a pointer to the start of the DMA multiplexer. Both
-    /// pointers must be valid for your MCU.
-    ///
-    /// An incorrect `CHANNELS` value prevents proper bounds checking when
-    /// allocating channels. This may result in DMA channels that point to
-    /// invalid memory.
-    </span><span class="kw">pub const unsafe fn </span>new(controller: <span class="kw-2">*const </span>(), multiplexer: <span class="kw-2">*const </span>()) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            controller: ral::Static(controller.cast()),
-            multiplexer: ral::Static(multiplexer.cast()),
-            wakers: [NO_WAKER; CHANNELS],
-        }
-    }
-}
-
-<span class="kw">use </span>interrupt::{SharedWaker, NO_WAKER};
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-77263533.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="imxrt_dma" data-themes="" data-resource-suffix="" data-rustdoc-version="1.94.1 (e408947bf 2026-03-25)" data-channel="1.94.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-7bab91a1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-ffcac47a.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">imxrt_dma/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Direct Memory Access (DMA) driver for i.MX RT processors.
+<a href=#2 id=2 data-nosnippet>2</a>//!
+<a href=#3 id=3 data-nosnippet>3</a>//! `imxrt-dma` provides
+<a href=#4 id=4 data-nosnippet>4</a>//!
+<a href=#5 id=5 data-nosnippet>5</a>//! - an unsafe API for defining and scheduling transfers with DMA `Channel`s.
+<a href=#6 id=6 data-nosnippet>6</a>//! - safe DMA futures for memcpy, peripheral-to-memory, and memory-to-peripheral
+<a href=#7 id=7 data-nosnippet>7</a>//!   transfers.
+<a href=#8 id=8 data-nosnippet>8</a>//!
+<a href=#9 id=9 data-nosnippet>9</a>//! This DMA driver may be re-exported from a hardware abstraction layer
+<a href=#10 id=10 data-nosnippet>10</a>//! (HAL). If it is, you should use the safer APIs provided by your HAL.
+<a href=#11 id=11 data-nosnippet>11</a>//!
+<a href=#12 id=12 data-nosnippet>12</a>//! # Getting started
+<a href=#13 id=13 data-nosnippet>13</a>//!
+<a href=#14 id=14 data-nosnippet>14</a>//! To allocate a [`Dma`] driver, you'll need to know
+<a href=#15 id=15 data-nosnippet>15</a>//!
+<a href=#16 id=16 data-nosnippet>16</a>//! 1. the location of the DMA controller registers.
+<a href=#17 id=17 data-nosnippet>17</a>//! 2. the location of the DMAMUX registers.
+<a href=#18 id=18 data-nosnippet>18</a>//! 3. the number of DMA channels supported by your chip.
+<a href=#19 id=19 data-nosnippet>19</a>//!
+<a href=#20 id=20 data-nosnippet>20</a>//! These parameters depend on the i.MX RT chip you're targeting. If you're
+<a href=#21 id=21 data-nosnippet>21</a>//! already using [`imxrt-ral`](https://docs.rs/imxrt-ral), consider using the
+<a href=#22 id=22 data-nosnippet>22</a>//! `DMA` and `DMAMUX` constants for the addresses. You're always responsible
+<a href=#23 id=23 data-nosnippet>23</a>//! for configuring the number of DMA channels.
+<a href=#24 id=24 data-nosnippet>24</a>//!
+<a href=#25 id=25 data-nosnippet>25</a>//! With those three parameters, assign a `Dma` to a static. Then, use that
+<a href=#26 id=26 data-nosnippet>26</a>//! object to create DMA [`Channel`](crate::channel::Channel)s.
+<a href=#27 id=27 data-nosnippet>27</a>//!
+<a href=#28 id=28 data-nosnippet>28</a>//! ```
+<a href=#29 id=29 data-nosnippet>29</a>//! use imxrt_dma::Dma;
+<a href=#30 id=30 data-nosnippet>30</a>//! # const DMA_PTR: *const () = core::ptr::null() as _;
+<a href=#31 id=31 data-nosnippet>31</a>//! # const DMAMUX_PTR: *const () = core::ptr::null() as  _;
+<a href=#32 id=32 data-nosnippet>32</a>//!
+<a href=#33 id=33 data-nosnippet>33</a>//! // Safety: addresses and channel count are valid for this target.
+<a href=#34 id=34 data-nosnippet>34</a>//! static DMA: Dma&lt;32&gt; = unsafe { Dma::new(DMA_PTR, DMAMUX_PTR) };
+<a href=#35 id=35 data-nosnippet>35</a>//!
+<a href=#36 id=36 data-nosnippet>36</a>//! // Safety: we only allocate one DMA channel 7 object.
+<a href=#37 id=37 data-nosnippet>37</a>//! let mut channel = unsafe { DMA.channel(7) };
+<a href=#38 id=38 data-nosnippet>38</a>//! ```
+<a href=#39 id=39 data-nosnippet>39</a>//!
+<a href=#40 id=40 data-nosnippet>40</a>//! Once you have a channel, you can use the higher-level DMA APIs, like
+<a href=#41 id=41 data-nosnippet>41</a>//!
+<a href=#42 id=42 data-nosnippet>42</a>//! - [`memcpy`](crate::memcpy::memcpy) for memory copies.
+<a href=#43 id=43 data-nosnippet>43</a>//! - [`write`](crate::peripheral::write) to transmit data from memory to
+<a href=#44 id=44 data-nosnippet>44</a>//!   a peripheral.
+<a href=#45 id=45 data-nosnippet>45</a>//! - [`read`](crate::peripheral::read) to receive data from a peripheral.
+<a href=#46 id=46 data-nosnippet>46</a>//! - [`full_duplex`](crate::peripheral::full_duplex) to read / write with a
+<a href=#47 id=47 data-nosnippet>47</a>//!   peripheral using a single buffer.
+<a href=#48 id=48 data-nosnippet>48</a>//!
+<a href=#49 id=49 data-nosnippet>49</a>//! Peripheral transfers depends on a peripheral's DMA support. These are signaled
+<a href=#50 id=50 data-nosnippet>50</a>//! through various [`peripheral`] traits.
+<a href=#51 id=51 data-nosnippet>51</a>//!
+<a href=#52 id=52 data-nosnippet>52</a>//! For a lower-level API, use the [`channel`] objects and helper
+<a href=#53 id=53 data-nosnippet>53</a>//! functions.
+<a href=#54 id=54 data-nosnippet>54</a>//!
+<a href=#55 id=55 data-nosnippet>55</a>//! ### License
+<a href=#56 id=56 data-nosnippet>56</a>//!
+<a href=#57 id=57 data-nosnippet>57</a>//! Licensed under either of
+<a href=#58 id=58 data-nosnippet>58</a>//!
+<a href=#59 id=59 data-nosnippet>59</a>//! - [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](./LICENSE-APACHE))
+<a href=#60 id=60 data-nosnippet>60</a>//! - [MIT License](http://opensource.org/licenses/MIT) ([LICENSE-MIT](./LICENSE-MIT))
+<a href=#61 id=61 data-nosnippet>61</a>//!
+<a href=#62 id=62 data-nosnippet>62</a>//! at your option.
+<a href=#63 id=63 data-nosnippet>63</a>//!
+<a href=#64 id=64 data-nosnippet>64</a>//! Unless you explicitly state otherwise, any contribution intentionally submitted
+<a href=#65 id=65 data-nosnippet>65</a>//! for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+<a href=#66 id=66 data-nosnippet>66</a>//! dual licensed as above, without any additional terms or conditions.
+<a href=#67 id=67 data-nosnippet>67</a>
+<a href=#68 id=68 data-nosnippet>68</a></span><span class="attr">#![no_std]
+<a href=#69 id=69 data-nosnippet>69</a>
+<a href=#70 id=70 data-nosnippet>70</a></span><span class="kw">pub mod </span>channel;
+<a href=#71 id=71 data-nosnippet>71</a><span class="kw">mod </span>element;
+<a href=#72 id=72 data-nosnippet>72</a><span class="kw">mod </span>error;
+<a href=#73 id=73 data-nosnippet>73</a><span class="kw">mod </span>interrupt;
+<a href=#74 id=74 data-nosnippet>74</a><span class="kw">pub mod </span>memcpy;
+<a href=#75 id=75 data-nosnippet>75</a><span class="kw">pub mod </span>peripheral;
+<a href=#76 id=76 data-nosnippet>76</a><span class="kw">mod </span>ral;
+<a href=#77 id=77 data-nosnippet>77</a>
+<a href=#78 id=78 data-nosnippet>78</a><span class="kw">pub use </span>element::Element;
+<a href=#79 id=79 data-nosnippet>79</a><span class="kw">pub use </span>error::Error;
+<a href=#80 id=80 data-nosnippet>80</a><span class="kw">pub use </span>interrupt::Transfer;
+<a href=#81 id=81 data-nosnippet>81</a><span class="kw">pub use </span>ral::tcd::BandwidthControl;
+<a href=#82 id=82 data-nosnippet>82</a>
+<a href=#83 id=83 data-nosnippet>83</a><span class="doccomment">/// A DMA result
+<a href=#84 id=84 data-nosnippet>84</a></span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = core::result::Result&lt;T, Error&gt;;
+<a href=#85 id=85 data-nosnippet>85</a>
+<a href=#86 id=86 data-nosnippet>86</a><span class="doccomment">/// A DMA driver.
+<a href=#87 id=87 data-nosnippet>87</a>///
+<a href=#88 id=88 data-nosnippet>88</a>/// This DMA driver manages the DMA controller and the multiplexer.
+<a href=#89 id=89 data-nosnippet>89</a>/// It's configured with pointers to both peripherals.
+<a href=#90 id=90 data-nosnippet>90</a>///
+<a href=#91 id=91 data-nosnippet>91</a>/// `Dma` allocates [`Channel`](channel::Channel)s. `Channel` provides
+<a href=#92 id=92 data-nosnippet>92</a>/// the interface for scheduling transfers.
+<a href=#93 id=93 data-nosnippet>93</a></span><span class="kw">pub struct </span>Dma&lt;<span class="kw">const </span>CHANNELS: usize&gt; {
+<a href=#94 id=94 data-nosnippet>94</a>    controller: ral::Static&lt;ral::dma::RegisterBlock&gt;,
+<a href=#95 id=95 data-nosnippet>95</a>    multiplexer: ral::Static&lt;ral::dmamux::RegisterBlock&gt;,
+<a href=#96 id=96 data-nosnippet>96</a>    wakers: [SharedWaker; CHANNELS],
+<a href=#97 id=97 data-nosnippet>97</a>}
+<a href=#98 id=98 data-nosnippet>98</a>
+<a href=#99 id=99 data-nosnippet>99</a><span class="comment">// Safety: OK to allocate a DMA driver in a static context.
+<a href=#100 id=100 data-nosnippet>100</a></span><span class="kw">unsafe impl</span>&lt;<span class="kw">const </span>CHANNELS: usize&gt; Sync <span class="kw">for </span>Dma&lt;CHANNELS&gt; {}
+<a href=#101 id=101 data-nosnippet>101</a>
+<a href=#102 id=102 data-nosnippet>102</a><span class="kw">impl</span>&lt;<span class="kw">const </span>CHANNELS: usize&gt; Dma&lt;CHANNELS&gt; {
+<a href=#103 id=103 data-nosnippet>103</a>    <span class="doccomment">/// Create the DMA driver.
+<a href=#104 id=104 data-nosnippet>104</a>    ///
+<a href=#105 id=105 data-nosnippet>105</a>    /// Note that this can evaluate at compile time. Consider using this to
+<a href=#106 id=106 data-nosnippet>106</a>    /// expose a `Dma` through your higher-level API that you can use to
+<a href=#107 id=107 data-nosnippet>107</a>    /// allocate DMA channels.
+<a href=#108 id=108 data-nosnippet>108</a>    ///
+<a href=#109 id=109 data-nosnippet>109</a>    /// `CHANNELS` specifies the total number of channels supported by the DMA
+<a href=#110 id=110 data-nosnippet>110</a>    /// controller. It's referenced when allocating channels.
+<a href=#111 id=111 data-nosnippet>111</a>    ///
+<a href=#112 id=112 data-nosnippet>112</a>    /// # Safety
+<a href=#113 id=113 data-nosnippet>113</a>    ///
+<a href=#114 id=114 data-nosnippet>114</a>    /// Caller must make sure that `controller` is a pointer to the start of the
+<a href=#115 id=115 data-nosnippet>115</a>    /// DMA controller register block. Caller must also make sure that
+<a href=#116 id=116 data-nosnippet>116</a>    /// `multiplexer` is a pointer to the start of the DMA multiplexer. Both
+<a href=#117 id=117 data-nosnippet>117</a>    /// pointers must be valid for your MCU.
+<a href=#118 id=118 data-nosnippet>118</a>    ///
+<a href=#119 id=119 data-nosnippet>119</a>    /// An incorrect `CHANNELS` value prevents proper bounds checking when
+<a href=#120 id=120 data-nosnippet>120</a>    /// allocating channels. This may result in DMA channels that point to
+<a href=#121 id=121 data-nosnippet>121</a>    /// invalid memory.
+<a href=#122 id=122 data-nosnippet>122</a>    </span><span class="kw">pub const unsafe fn </span>new(controller: <span class="kw-2">*const </span>(), multiplexer: <span class="kw-2">*const </span>()) -&gt; <span class="self">Self </span>{
+<a href=#123 id=123 data-nosnippet>123</a>        <span class="self">Self </span>{
+<a href=#124 id=124 data-nosnippet>124</a>            controller: ral::Static(controller.cast()),
+<a href=#125 id=125 data-nosnippet>125</a>            multiplexer: ral::Static(multiplexer.cast()),
+<a href=#126 id=126 data-nosnippet>126</a>            wakers: [NO_WAKER; CHANNELS],
+<a href=#127 id=127 data-nosnippet>127</a>        }
+<a href=#128 id=128 data-nosnippet>128</a>    }
+<a href=#129 id=129 data-nosnippet>129</a>}
+<a href=#130 id=130 data-nosnippet>130</a>
+<a href=#131 id=131 data-nosnippet>131</a><span class="kw">use </span>interrupt::{NO_WAKER, SharedWaker};
 </code></pre></div></section></main></body></html>
